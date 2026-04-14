@@ -433,7 +433,7 @@ const KICKS_I = {
 };
 
 // Attack table from Jstris: [0, 0, 1, 2, 4, 4, 6, 2, 0, 10, 1]
-// index: 0=unused, 1=single, 2=double, 3=triple, 4=tetris, 5=TSD, 6=TST, 7=TSS, 8=mini, 9=PC, 10=b2b bonus
+// index: 0=unused, 1=single, 2=double, 3=triple, 4=quad, 5=TSD, 6=TST, 7=TSS, 8=mini, 9=PC, 10=b2b bonus
 const ATTACK_TABLE = [0, 0, 1, 2, 4, 4, 6, 2, 0, 10, 1];
 const COMBO_TABLE = [0, 0, 1, 1, 1, 2, 2, 3, 3, 4, 4, 4, 5];
 
@@ -479,7 +479,7 @@ function formatTime(seconds) {
 }
 
 // ─── GAME ENGINE ───
-class TetrisEngine {
+class BlockEngine {
   constructor(settings = {}) {
     this.das = settings.das ?? 133;
     this.arr = settings.arr ?? 10;
@@ -552,7 +552,7 @@ class TetrisEngine {
       singles: 0,
       doubles: 0,
       triples: 0,
-      tetrises: 0,
+      quads: 0,
       tspins: 0,
       pcs: 0,
       maxCombo: 0,
@@ -960,8 +960,8 @@ class TetrisEngine {
           }
           break;
         default: // 4+
-          this.stats.tetrises++;
-          actionName = cleared === 4 ? "Tetris" : `${cleared}-Line`;
+          this.stats.quads++;
+          actionName = cleared === 4 ? "Quad" : `${cleared}-Line`;
           attack = ATTACK_TABLE[4];
           if (this.b2b) {
             this.stats.b2bs++;
@@ -1333,7 +1333,7 @@ function buildReplayText(engine, settings, summary) {
   if (s.singles) breakdown.push(`${s.singles}S`);
   if (s.doubles) breakdown.push(`${s.doubles}D`);
   if (s.triples) breakdown.push(`${s.triples}T`);
-  if (s.tetrises) breakdown.push(`${s.tetrises}Tet`);
+  if (s.quads) breakdown.push(`${s.quads}Q`);
   if (s.tspins) breakdown.push(`${s.tspins}TS`);
   lines.push(
     `STATS: ${breakdown.join(" ")} | Combo max:${s.maxCombo} | B2B:${s.b2bs}`,
@@ -1476,7 +1476,7 @@ const DEFAULT_KEYS = {
 };
 
 // ─── REACT COMPONENT ───
-export default function TetrisSprint() {
+export default function BlockSprint() {
   const canvasRef = useRef(null);
   const holdRef = useRef(null);
   const queueRef = useRef(null);
@@ -1741,7 +1741,7 @@ export default function TetrisSprint() {
   );
 
   const startGame = useCallback(() => {
-    const engine = new TetrisEngine({ das, arr, sdf, sprintLines });
+    const engine = new BlockEngine({ das, arr, sdf, sprintLines });
     engineRef.current = engine;
     engine.start();
     setGameState("playing");
@@ -1893,7 +1893,7 @@ export default function TetrisSprint() {
               color: "#fff",
             }}
           >
-            TETRIS <span style={{ color: "#00f0f0" }}>SPRINT</span>
+            JBL <span style={{ color: "#00f0f0" }}>SPRINT</span>
           </div>
           <div
             style={{
@@ -1903,7 +1903,7 @@ export default function TetrisSprint() {
               letterSpacing: 2,
             }}
           >
-            REVERSE-ENGINEERED FROM JSTRIS
+JOJO'S BLOCKGAME LABORATORY
           </div>
 
           {/* Sprint mode selector */}
@@ -2295,7 +2295,7 @@ export default function TetrisSprint() {
                     {stats.attack} ATK
                   </span>
                   <br />
-                  Tetrises: {stats.tetrises} &middot; T-Spins:{" "}
+                  Quads: {stats.quads} &middot; T-Spins:{" "}
                   {stats.tspins} &middot; PCs: {stats.pcs}
                   <br />
                   Max Combo: {stats.maxCombo} &middot; B2Bs:{" "}
