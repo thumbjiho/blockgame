@@ -1882,6 +1882,34 @@ export default function BlockSprint() {
         SPRINT
       </div>
 
+      {/* Footer credit */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: 12,
+          left: 0,
+          right: 0,
+          textAlign: "center",
+          fontSize: 11,
+          letterSpacing: 1.5,
+          color: "#666",
+          opacity: 0.6,
+          pointerEvents: "auto",
+          zIndex: 5,
+        }}
+      >
+        Inspired by{" "}
+        <a
+          href="https://jstris.jezevec10.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ color: "#888", textDecoration: "none" }}
+        >
+          Jstris
+        </a>
+        {" · "}SRS Guideline{" · "}Made with ♥ by Jojo
+      </div>
+
       {gameState === "menu" ? (
         <div style={{ textAlign: "center", zIndex: 10 }}>
           <div
