@@ -610,8 +610,9 @@ function Viewer({ replay, look, keysOff, onClose, onMenu }) {
       const n = shownLine.shown;
       const last = shownLine.moves[n - 1];
       drawBoard(canvasRef.current, { matrix: last.matrix, currentId: 0 }, { mark: last.cleared ? null : last.cells });
-      drawHold(holdRef.current, frame.hold);
-      drawQueue(queueRef.current, dealt.slice(frame.dealtCount + last.piece - 1));
+      // An engine line knows what it held along the way; the others never hold.
+      drawHold(holdRef.current, last.hold !== undefined ? last.hold : frame.hold);
+      drawQueue(queueRef.current, last.next || dealt.slice(frame.dealtCount + last.piece - 1));
       return;
     }
     if (moment && !playing && next?.kind === "place") {

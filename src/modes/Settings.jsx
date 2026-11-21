@@ -188,7 +188,7 @@ export default function Settings({ values, onSave, onClose }) {
           <div className="opts">
             {[
               { k: "All sounds", v: soundEnabled, set: setSoundEnabled },
-              { k: "Fault", hint: "A wrong or wasteful placement in Finesse and Opening", key: "fault" },
+              { k: "Fault", hint: "A wasted key press on any piece, or a wrong spot in Finesse and Opening", key: "fault" },
               { k: "Back-to-back", hint: "A quad or spin clear right after another", key: "b2b" },
               { k: "Combo", hint: "Clears in a row, rising with each one", key: "combo" },
             ].map((row) => (

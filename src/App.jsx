@@ -12,6 +12,7 @@ import Opening from "./modes/Opening.jsx";
 import Finesse from "./modes/Finesse.jsx";
 import Lab from "./modes/Lab.jsx";
 import Settings from "./modes/Settings.jsx";
+import Experiments from "./modes/Experiments.jsx";
 import ComingSoon from "./modes/ComingSoon.jsx";
 import { KeyHints, TopBar, FocusWarning } from "./ui.jsx";
 import { useFocusWarning } from "./display.js";
@@ -42,8 +43,8 @@ const MODES = [
   { id: "opening", label: "Opening", color: "#b14fd0", desc: "Practise openers piece by piece: TKI, PCO, DT Cannon, Albatross.", ready: true, beta: true },
   { id: "finesse", label: "Finesse", color: "#5cc45c", desc: "Place each piece in the fewest key presses.", ready: true, beta: true },
   { id: "lab", label: "Replay", color: "#3fc8b4", desc: "Watch a run again from its log.", ready: true, beta: true },
-  { id: "puzzle", label: "Puzzle", color: "#f2913d", desc: "Solve set positions.", ready: false },
-  { id: "challenge", label: "Challenge", color: "#f2cb4c", desc: "Daily goals.", ready: false },
+  { id: "sandbox", label: "Sandbox", color: "#f2913d", desc: "Build a board of your own and play it.", ready: false },
+  { id: "experiments", label: "Lab", color: "#f2cb4c", desc: "Things being tried out, just for fun.", ready: true, beta: true },
 ];
 
 // Next menu row in direction d, skipping modes that are not ready yet.
@@ -190,7 +191,7 @@ export default function App() {
           {devProfile} keys
         </div>
       )}
-      <TopBar lang={lang} setLang={setLangState} theme={theme} setTheme={changeTheme} onSettings={openSettings} />
+      <TopBar lang={lang} setLang={setLangState} theme={theme} setTheme={changeTheme} sound={soundEnabled} setSound={setSoundEnabled} onSettings={openSettings} />
       {settingsOpen && (
         <Settings
           values={{ das, arr, sdf, soundEnabled, soundOpts, skin, cellLines }}
@@ -244,6 +245,7 @@ export default function App() {
         {view === "opening" && <Opening settings={settings} onBack={goMenu} />}
         {view === "finesse" && <Finesse settings={settings} onBack={goMenu} />}
         {view === "lab" && <Lab settings={settings} initial={labLog} onBack={goMenu} />}
+        {view === "experiments" && <Experiments settings={settings} onBack={goMenu} />}
         {current && !current.ready && <ComingSoon label={t(current.label)} color={current.color} onBack={goMenu} />}
       </main>
 

@@ -215,7 +215,7 @@ export default function Finesse({ settings, onBack }) {
       const dt = lastTimeRef.current ? timestamp - lastTimeRef.current : 16;
       lastTimeRef.current = timestamp;
       engine.update(Math.min(dt, 100), performance.now());
-      trackSfx(engine);
+      trackSfx(engine, { fault: false });
 
       if (st.finished) {
         engine.playing = false;

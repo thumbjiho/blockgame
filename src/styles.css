@@ -835,6 +835,21 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius
 /* The bubble fills its slot, so it is one size for every comment. */
 .lab-slot { height: 118px; }
 .lab-slot.open { height: auto; }
+/* Lab (experiments) */
+.exp-list { width: min(100%, 420px); display: flex; flex-direction: column; gap: 8px; }
+.btn.exp-item { height: auto; padding: 14px 18px; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; text-align: left; text-transform: none; letter-spacing: 0; border-radius: 14px; }
+.exp-item b { font-size: var(--t4); font-weight: 600; color: var(--fg); }
+.exp-item span { font-size: var(--t3); color: var(--dim); line-height: 1.45; white-space: normal; }
+.snd { width: min(100%, 720px); display: flex; flex-direction: column; gap: 18px; text-align: left; }
+.snd-row { display: grid; grid-template-columns: 120px 1fr; align-items: start; gap: 16px; }
+.snd-row > .k { padding-top: 11px; }
+.snd-btns { display: flex; flex-wrap: wrap; gap: 6px; }
+.snd-btns .btn { height: 36px; padding: 0 14px; }
+.snd-scale { display: flex; align-items: center; gap: 12px; }
+.snd-scale .dd { width: 200px; }
+.snd-scale.wide .dd { width: 320px; }
+.snd-btns.tight { gap: 4px; flex-wrap: nowrap; }
+.snd-btns.tight .btn { width: 34px; padding: 0; font-variant-numeric: tabular-nums; }
 /* Help on the scores: a question mark at the end of the row, its text on hover. */
 .lab-top { position: relative; }
 .lab-help { position: absolute; top: -5px; right: -4px; z-index: 5; }

@@ -194,6 +194,26 @@ export function playLine(matrix, raw) {
   }
   return line;
 }
+// What the hold and the queue look like after each move of a line, given the
+// piece in hand, the hold and the queue it starts from. A move with a piece
+// other than the one in hand went through the hold. Sets hold and next (the
+// pieces still to come) on every move.
+function holdsAlong(line, cur, hold, queue) {
+  const next = queue.slice();
+  for (const mv of line) {
+    if (mv.id !== cur) {
+      if (hold === mv.id) {
+        hold = cur; // swapped: the held piece is played, the one in hand is kept
+      } else if (!hold && next[0] === mv.id) {
+        hold = cur; // first hold: the one in hand is kept, the next piece is played
+        next.shift();
+      }
+    }
+    cur = next.shift() ?? 0;
+    mv.hold = hold;
+    mv.next = cur ? [cur, ...next] : [];
+  }
+}
 // → Map(step of a placement → { loss, best, mine, line }); mine is null when
 // the engine never considered the spot that was played.
 // sprint: judge with the engine's Sprint weights (lines only, quads above all).
@@ -231,7 +251,9 @@ export async function engineMacro({ events, frames, dealt, sprint = false }, eva
       const plan = res.plan.length && cellKey(res.plan[0].cells) === res.best.key ? res.plan : [res.best];
       // rank: how many of the engine's moves it valued above the one played.
       const rank = mine ? res.moves.filter((m) => m.value > mine.value).length : null;
-      out.set(i, { loss: mine ? Math.max(0, res.best.value - mine.value) : null, rank, best: res.best, mine, line: playLine(f.matrix, plan.slice(0, 4)) });
+      const line = playLine(f.matrix, plan.slice(0, 4));
+      holdsAlong(line, LETTER_ID[events[s].type], f.hold, dealt.slice(f.dealtCount));
+      out.set(i, { loss: mine ? Math.max(0, res.best.value - mine.value) : null, rank, best: res.best, mine, line });
     }
     const cleared = frames[i + 1].lines - frames[i].lines;
     if (cleared) {
