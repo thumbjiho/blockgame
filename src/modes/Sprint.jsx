@@ -9,7 +9,7 @@ import { Stat, SetupInfo, Countdown, KeyHints, ReplayLog, KeyStrokes, PauseMenu,
 import { useDisplayToggles, usePause, useSettingsDialog, tune, heldActions, useCountdown } from "../display.js";
 import { useFit } from "../fit.js";
 
-const SPRINT_OPTIONS = [1, 20, 40, 100, 1000];
+const SPRINT_OPTIONS = [1, 20, 40, 100];
 
 export default function Sprint({ settings, onBack }) {
   // In-game display toggles (L log, K key input); they change the saved setting.

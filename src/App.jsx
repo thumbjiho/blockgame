@@ -1,4 +1,3 @@
-import { LogoLockup } from "./Logo.jsx";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { flushSync } from "react-dom";
 import { saveRecent } from "./recent.js";
@@ -243,10 +242,10 @@ export default function App() {
       )}
 
       <FocusWarning show={focusLost} />
-      <TopBar lang={lang} setLang={setLangState} theme={theme} setTheme={changeTheme} sound={soundEnabled} setSound={setSoundEnabled} onSettings={openSettings} />
+      <TopBar lang={lang} setLang={setLangState} sound={soundEnabled} setSound={setSoundEnabled} onSettings={openSettings} />
       {settingsOpen && (
         <Settings
-          values={{ das, arr, sdf, soundEnabled, soundOpts, skin, cellLines, orientMark }}
+          values={{ das, arr, sdf, soundEnabled, soundOpts, skin, cellLines, orientMark, theme }}
           onSave={(v) => {
             setDas(v.das);
             setArr(v.arr);
@@ -256,6 +255,7 @@ export default function App() {
             setSkinName(v.skin);
             setCellLinesOn(v.cellLines);
             setOrientMarkOn(v.orientMark);
+            if (v.theme !== theme) changeTheme(v.theme);
             setSettingsOpen(false);
           }}
           onClose={closeSettings}
@@ -265,14 +265,12 @@ export default function App() {
       <main className="main">
         {view === "menu" && (
           <div className="home">
+            {/* The site's whole address as the title, in one size and weight. */}
             <h1 className="logo">
-              <LogoLockup
-                after={
-                  <a className="logo-site" href="https://umjo.me" target="_blank" rel="noopener noreferrer">
-                    .umjo.me
-                  </a>
-                }
-              />
+              SZO
+              <a className="logo-site" href="https://umjo.me" target="_blank" rel="noopener noreferrer">
+                .umjo.me
+              </a>
             </h1>
             <div className="sub">Jojo&apos;s Blockgame Laboratory</div>
             <div className="menu">

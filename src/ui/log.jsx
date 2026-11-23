@@ -29,6 +29,10 @@ export function ReplayLog({ events, total, side = "left", keys = true }) {
                   <>
                     <i style={{ background: "#5a5a5a" }} />G
                   </>
+                ) : ev.kind === "floor" ? (
+                  <>
+                    <i style={{ background: "#333333" }} />F
+                  </>
                 ) : (
                   <PieceIcon type={ev.type} size={3} />
                 )}
@@ -37,6 +41,11 @@ export function ReplayLog({ events, total, side = "left", keys = true }) {
                 <>
                   <span className="rlog-dim">+{ev.holes.length}</span>
                   <span className="rlog-dim">{t("garbage")}</span>
+                </>
+              ) : ev.kind === "floor" ? (
+                <>
+                  <span className="rlog-dim">+{ev.rows}</span>
+                  <span className="rlog-dim">{t("floor")}</span>
                 </>
               ) : ev.kind === "hold" ? (
                 <span className="rlog-dim">{t("hold")}</span>

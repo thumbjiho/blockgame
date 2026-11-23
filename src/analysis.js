@@ -8,7 +8,7 @@
 // Nothing here is a language model: macro compares every placement with what
 // a plain drop could have done on the same board, using a stack evaluator.
 // The result is data ({ kind, grade, text: [key, params] }); the UI words it.
-import { ROWS, COLS, EMPTY, getShape, BlockEngine } from "./game.js";
+import { ROWS, COLS, EMPTY, FLOOR, floorOf, getShape, BlockEngine } from "./game.js";
 
 const LETTER_ID = { I: 1, T: 2, L: 3, J: 4, S: 5, Z: 6, O: 7 };
 const ROTATIONS = { 1: 2, 5: 2, 6: 2, 7: 1 }; // distinct shapes; the rest have 4
@@ -88,7 +88,7 @@ function settle(m, id, rot, x, y) {
       cells.push([y + r, x + c]);
     }
   }
-  const kept = out.filter((row) => row.some((v) => v === EMPTY));
+  const kept = out.filter((row) => row[0] === FLOOR || row.some((v) => v === EMPTY));
   const cleared = ROWS - kept.length;
   while (kept.length < ROWS) kept.unshift(new Array(COLS).fill(EMPTY));
   // placed: the board with the piece on it, before any full rows go.
@@ -191,7 +191,7 @@ export function playLine(matrix, raw) {
   let m = matrix;
   for (const mv of raw) {
     const placed = paint(m, mv.id, mv.cells);
-    const kept = placed.filter((row) => row.some((v) => v === EMPTY));
+    const kept = placed.filter((row) => row[0] === FLOOR || row.some((v) => v === EMPTY));
     const cleared = ROWS - kept.length;
     while (kept.length < ROWS) kept.unshift(new Array(COLS).fill(EMPTY));
     line.push({ id: mv.id, cells: mv.cells, cleared, matrix: kept, placed });
@@ -233,7 +233,9 @@ export async function engineMacro({ events, frames, dealt, sprint = false }, eva
     const f = frames[s];
     const res = await evaluate(
       {
-        rows: f.matrix.map((row) => row.map((v) => (v === EMPTY ? "0" : "1")).join("")),
+        // The board above the floor (Battle), which an engine would take for
+        // full rows to clear.
+        rows: [...Array(floorOf(f.matrix)).fill("0".repeat(COLS)), ...f.matrix.slice(0, ROWS - floorOf(f.matrix)).map((row) => row.map((v) => (v === EMPTY ? "0" : "1")).join(""))],
         cur: events[s].type,
         queue: dealt.slice(f.dealtCount, f.dealtCount + 5).map((id) => ID_LETTER[id]).join(""),
         hold: f.hold ? ID_LETTER[f.hold] : "",

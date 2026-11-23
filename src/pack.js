@@ -24,6 +24,7 @@ export async function pack(text) {
     const dt = ms(ev.t) - prev;
     prev = ms(ev.t);
     if (ev.kind === "garbage") return `G${dt};${ev.holes.join(",")}`;
+    if (ev.kind === "floor") return `F${dt};${ev.rows}`;
     if (ev.kind === "hold") return `H${ev.type}${dt}`;
     const tags = ev.action + (ev.b2b ? "!" : "") + (ev.pc ? "*" : "");
     return `${ev.type}${[dt, ev.placed[0], ev.placed[1], ev.rot, ev.keys, ev.optimal, ev.spawn[0], ev.spawn[1]].join(",")};${tags}`;
@@ -48,6 +49,10 @@ export async function unpack(packed) {
       if (row[0] === "G") {
         const [dt, holes] = row.slice(1).split(";");
         return `${num} ${stamp(dt)} garbage +${holes ? holes.split(",").length : 0} holes=[${holes}]`;
+      }
+      if (row[0] === "F") {
+        const [dt, n] = row.slice(1).split(";");
+        return `${num} ${stamp(dt)} floor +${n}`;
       }
       if (row[0] === "H") return `${num} ${stamp(row.slice(2))} ${row[1]} hold`;
       const [nums, tags] = row.slice(1).split(";");

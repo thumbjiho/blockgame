@@ -7,10 +7,13 @@
 import { COLS, ROWS, PIECE_NAMES } from "../game.js";
 
 export function readEngine(engine) {
+  // The board above the rising floor: a bot would take the floor's full rows
+  // for lines it can clear.
+  const matrix = engine.liveMatrix ? engine.liveMatrix() : engine.matrix;
   const rows = [];
   for (let r = 0; r < ROWS; r++) {
     let s = "";
-    for (let c = 0; c < COLS; c++) s += engine.matrix[r][c] ? "1" : "0";
+    for (let c = 0; c < COLS; c++) s += matrix[r][c] ? "1" : "0";
     rows.push(s);
   }
   const { ready = 0, charging = 0 } = engine.garbageCounts ? engine.garbageCounts() : {};

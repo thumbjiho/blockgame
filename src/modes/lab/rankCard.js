@@ -83,7 +83,7 @@ export function drawRankCard({ letter, step, title, scores, name, mode, vs, date
   if (baked) bakeFoil(ctx, letter, m, textures);
 
   ctx.textBaseline = "middle";
-  text("SZO", m + 56, m + 78, 40, 800, "#ffffff", "left");
+  text("szo.umjo.me", m + 56, m + 78, 34, 700, "#ffffff", "left");
   if (date) text(date, W - m - 56, m + 78, 30, 500, "rgba(255, 255, 255, 0.6)", "right");
 
   // The seal: a ring (turning colours for SS and SSS), a dark face, the letter.

@@ -10,15 +10,15 @@ const cells = (matrix) => matrix.map((row) => row.map((v) => (v ? 1 : 0)).join("
 
 // Plays a game with holds and incoming garbage, keeping the board, hold and
 // line count as they were after every piece.
-function recorded(seed, pieces = 60) {
-  const e = new BlockEngine({ seed, sprintLines: 999999 });
+function recorded(seed, pieces = 60, floor = null) {
+  const e = new BlockEngine({ seed, sprintLines: 999999, floor });
   e.start();
   const rand = rng(seed);
   const after = [];
   for (let n = 0; e.playing && n < pieces; n++) {
     if (n % 7 === 3) e.holdPiece();
     if (n % 11 === 5) e.receiveGarbage(1 + Math.floor(rand() * 3));
-    const best = findBestPlacement(e.matrix, e.currentId);
+    const best = findBestPlacement(e.liveMatrix(), e.currentId);
     if (!best) break;
     let { x, rot } = best;
     if (rand() < 0.2) x = Math.floor(rand() * 8);
@@ -200,4 +200,34 @@ test("a Battle board packs into a QR code with its garbage, and replays the same
     checked++;
   }
   assert.ok(checked >= 5, `only ${checked} games had garbage`);
+});
+
+test("a rising floor replays, packs into a QR code and comes back the same", async () => {
+  const { packRun, unpackRun } = await import("../src/compact.js");
+  const { qr } = await import("../src/qr.js");
+  const kinds = (events) => events.map((e) => (e.kind === "garbage" ? ["g", e.holes] : e.kind === "floor" ? ["f", e.rows] : [e.kind, e.type, e.placed]));
+  let checked = 0;
+  for (let seed = 1; seed <= 12; seed++) {
+    // Early and fast, so a short game sees it rise many times.
+    const { engine, after } = recorded(seed, 90, { start: 4, every: 2 });
+    const text = buildLogText(engine, "BATTLE P1 vs Stacker (Hard)");
+    const a = parseLog(text);
+    if (!a.some((e) => e.kind === "floor")) continue;
+    const { frames } = buildFrames(a);
+    // The board after every piece is the engine's, floor rows and all.
+    let p = 0;
+    a.forEach((e, i) => {
+      if (e.kind !== "place") return;
+      const next = a[i + 1]?.kind === "garbage" || a[i + 1]?.kind === "floor" ? (a[i + 2]?.kind === "floor" ? i + 3 : i + 2) : i + 1;
+      assert.deepEqual(cells(frames[next].matrix), after[p].board, `seed ${seed}: board after piece ${p + 1}`);
+      p++;
+    });
+    const packed = packRun(text);
+    assert.ok(packed, `seed ${seed}: packs`);
+    const b = parseLog(unpackRun(packed));
+    assert.deepEqual(kinds(b), kinds(a), `seed ${seed}: same pieces, garbage and floor`);
+    assert.ok(qr(`HTTPS://SZO.UMJO.ME/Q/${packed}`), `seed ${seed}: fits a QR code`);
+    checked++;
+  }
+  assert.ok(checked >= 5, `only ${checked} games had a rising floor`);
 });

@@ -17,6 +17,9 @@ function replayLines(engine) {
     if (ev.kind === "garbage") {
       pieceNum++;
       lines.push(`#${String(pieceNum).padStart(2, "0")} ${ts} garbage +${ev.holes.length} holes=[${ev.holes.join(",")}]`);
+    } else if (ev.kind === "floor") {
+      pieceNum++;
+      lines.push(`#${String(pieceNum).padStart(2, "0")} ${ts} floor +${ev.rows}`);
     } else if (ev.kind === "hold") {
       pieceNum++;
       lines.push(

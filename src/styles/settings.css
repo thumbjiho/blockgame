@@ -51,3 +51,5 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius
 .err { color: var(--bad); font-size: var(--t2); margin-top: 12px; }
 .note { font-size: var(--t2); color: var(--faint); line-height: 1.6; margin: 0 0 12px; }
 
+/* A Beta tag beside a setting's name, as on the home menu. */
+.settings .opt .tag.beta { margin-left: 8px; font-size: var(--t1); color: var(--faint); }

@@ -32,8 +32,13 @@ export default function Viewer({ replay, shared = false, look, keysOff, onClose,
         setTimeout(() => setLinked(false), 2000);
       })
       .catch((err) => console.error("Copy failed:", err));
-  // Wide enough for the log on the left and the review on the right.
-  const fit = useFit(1260, 600);
+  // The play area is 584 wide, with the log hanging 196 off its left and the
+  // review 328 off its right; the three are centred as one. The log goes
+  // first when the window narrows, before anything is scaled down.
+  const PLAY_W = 584, LOG_W = 196, REVIEW_W = 328;
+  const roomy = window.innerWidth - 64 >= LOG_W + PLAY_W + REVIEW_W;
+  const fit = useFit((roomy ? LOG_W : 0) + PLAY_W + REVIEW_W, 600);
+  const shift = (REVIEW_W - (roomy ? LOG_W : 0)) / 2;
   // On a phone (someone who scanned a card's QR code) the screen is laid out
   // tall instead: the board as wide as it goes with hold and next beside it,
   // then the transport and the review under it, and the page scrolls. 372 is
@@ -271,7 +276,7 @@ export default function Viewer({ replay, shared = false, look, keysOff, onClose,
     if (playing && live) {
       // The piece in hand, where it was at this moment (garbage has no piece
       // of its own: the one falling is the next event's).
-      const mine = events.slice(step).find((e) => e.kind !== "garbage");
+      const mine = events.slice(step).find((e) => e.kind !== "garbage" && e.kind !== "floor");
       const at = mine && pathAt(replay.moves, step, clock);
       if (at) Object.assign(board, { playing: true, currentId: LETTER_ID[mine.type], currentRot: at.rot, currentX: at.x, currentY: at.y, ghostY: at.y });
     } else if (next?.kind === "place") {
@@ -350,8 +355,8 @@ export default function Viewer({ replay, shared = false, look, keysOff, onClose,
         {replay.mode.mode === "unknown" ? "" : ` · ${modeName(replay.mode, "")}`}
       </div>
       <div style={{ zoom, "--accent": ACCENT, "--unzoom": 1 / zoom, "--phone-w": `${(window.innerWidth - 40) / zoom}px` }}>
-        <div className={"play" + (phone ? " lab-phone" : "")}>
-          <ReplayLog events={shown} total={step} />
+        <div className={"play" + (phone ? " lab-phone" : "")} style={phone ? undefined : { position: "relative", left: -shift }}>
+          {!phone && roomy && <ReplayLog events={shown} total={step} />}
           <div className="side">
             {/* A hold is easy to miss in a replay, so the step it happens on lights
                 the hold up; the key restarts the pop on every new hold. */}

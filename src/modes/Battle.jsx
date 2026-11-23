@@ -7,7 +7,7 @@ import { BotPlayer } from "../bots/player.js";
 import { createTrace } from "../trace.js";
 import { buildKeyMap, loadKeyBindings } from "../keys.js";
 import { drawBoard, drawHold, drawQueue, prep, boardTone, BOARD_W, BOARD_H, HOLD_W, HOLD_H, SLOT } from "../render.js";
-import { SetupInfo, Countdown, KeyHints, Dropdown, Stepper, EngineLog, KeyStrokes, Icon } from "../ui.jsx";
+import { SetupInfo, Countdown, KeyHints, Dropdown, Stepper, EngineLog, KeyStrokes, Icon, Switch } from "../ui.jsx";
 import { sfx, sfxForAction, trackSfx } from "../sound.js";
 import { useFit } from "../fit.js";
 
@@ -91,10 +91,15 @@ function loadBattlePrefs() {
   }
 }
 
-function createEngine(settings, attackBonus = 0, seed) {
+// The rising floor: from a minute in, one solid row every six seconds, so a
+// match between two who never top out still ends.
+const FLOOR_RULE = { start: 60, every: 6 };
+
+function createEngine(settings, attackBonus = 0, seed, floor = false) {
   return new BlockEngine({
     attackBonus,
     seed,
+    floor: floor ? FLOOR_RULE : null,
     das: settings.das,
     arr: settings.arr,
     sdf: settings.sdf,
@@ -223,6 +228,7 @@ export default function Battle({ settings, onBack }) {
   const [rightBot, setRightBot] = useState(saved.rightBot ?? "cc");
   const [leftHandicap, setLeftHandicap] = useState(saved.leftHandicap ?? 0);
   const [rightHandicap, setRightHandicap] = useState(saved.rightHandicap ?? 0);
+  const [risingFloor, setRisingFloor] = useState(saved.risingFloor ?? true);
   const humanSeats = [left, right].filter((x) => x !== "cpu").length;
   // Only the key profiles this match uses can take J or K away from the toggles.
   useDisplayToggles(settings, humanSeats === 2 ? ["p1", "p2"] : humanSeats === 1 ? ["solo"] : []);
@@ -257,11 +263,11 @@ export default function Battle({ settings, onBack }) {
   }, [settings]);
   useEffect(() => {
     try {
-      localStorage.setItem("jbl-battle", JSON.stringify({ left, right, leftLevel, rightLevel, leftBot, rightBot, leftHandicap, rightHandicap }));
+      localStorage.setItem("jbl-battle", JSON.stringify({ left, right, leftLevel, rightLevel, leftBot, rightBot, leftHandicap, rightHandicap, risingFloor }));
     } catch {
       /* ignore */
     }
-  }, [left, right, leftLevel, rightLevel, leftBot, rightBot, leftHandicap, rightHandicap]);
+  }, [left, right, leftLevel, rightLevel, leftBot, rightBot, leftHandicap, rightHandicap, risingFloor]);
 
   const reloadKeys = useCallback(() => {
     const all = loadKeyBindings();
@@ -365,13 +371,13 @@ export default function Battle({ settings, onBack }) {
     reloadKeys();
     // Same seed on both sides: both players get exactly the same pieces.
     const seed = Math.floor(Math.random() * 2 ** 31);
-    engine1Ref.current = createEngine(settingsRef.current, leftHandicap, seed);
-    engine2Ref.current = createEngine(settingsRef.current, rightHandicap, seed);
+    engine1Ref.current = createEngine(settingsRef.current, leftHandicap, seed, risingFloor);
+    engine2Ref.current = createEngine(settingsRef.current, rightHandicap, seed, risingFloor);
     for (const c of cpusRef.current) c.dispose?.();
     cpusRef.current = [];
     setWinner(null);
     runCountdown();
-  }, [runCountdown, reloadKeys, leftHandicap, rightHandicap, cancelCountdown]);
+  }, [runCountdown, reloadKeys, leftHandicap, rightHandicap, risingFloor, cancelCountdown]);
 
   // Pause (Esc). A match is shared, so nothing restarts from a single key:
   // rematch and exit live in the pause menu.
@@ -597,7 +603,12 @@ export default function Battle({ settings, onBack }) {
               </Fragment>
             ))}
           </div>
-          <p className="note slot-note">
+          {/* One line under the seats: the rising floor, and a word when both
+              sides are CPU. Short, so the seats keep their height. */}
+          <div className="note slot-note">
+            <span className="floor-switch">
+              <Switch checked={risingFloor} onChange={setRisingFloor} label="Rising floor" hint="From 1:00, a solid row every 6 seconds" />
+            </span>
             {bothCpu ? (
               <span className="warn">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -607,7 +618,7 @@ export default function Battle({ settings, onBack }) {
                 {t("Both sides are CPU, so you'll be watching.")}
               </span>
             ) : null}
-          </p>
+          </div>
         </div>
         <div className="actions">
           <SetupInfo settings={settings} profiles={humans === 2 ? ["p1", "p2"] : humans === 1 ? ["solo"] : []} />

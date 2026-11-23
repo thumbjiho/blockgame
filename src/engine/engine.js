@@ -1,5 +1,5 @@
 // The game itself: one board, one falling piece, time. Knows nothing of React.
-import { COLS, ROWS, EMPTY, PIECE_NAMES, SPAWNS, getShape } from "./pieces.js";
+import { COLS, ROWS, EMPTY, FLOOR, PIECE_NAMES, SPAWNS, getShape } from "./pieces.js";
 import { computeFinesseOptimal, computeHeights, countHoles } from "./placement.js";
 import { getKicks } from "./srs.js";
 import { ATTACK_TABLE, COMBO_TABLE } from "./rules.js";
@@ -23,6 +23,10 @@ export class BlockEngine {
     // like the "charging" garbage in TETR.IO: you get a moment to clear and
     // cancel it, and only garbage that is ready comes up on your next drop.
     this.garbageDelay = settings.garbageDelay ?? 0.5;
+    // Battle's rising floor: from `start` seconds on, a solid row that never
+    // clears comes up from the bottom every `every` seconds, so a long match
+    // has to end. null: the floor stays where it is.
+    this.floorRule = settings.floor ?? null;
     this.validatePlacement = null;
 
     this.reset();
@@ -97,6 +101,7 @@ export class BlockEngine {
     this.outgoingAttack = 0; // attack to be sent this turn (after self-cancel)
     this.garbageQueue = []; // [{ amount, holeCol, readyAt }]
     this.lastGarbageHoleCol = -1;
+    this.floor = 0; // solid rows at the bottom
     this.stats = {
       singles: 0,
       doubles: 0,
@@ -400,8 +405,8 @@ export class BlockEngine {
     // between two frames, e.g. hard drops from key events).
     this.outgoingAttack += outgoing;
     try {
-      const heights = computeHeights(this.matrix);
-      const holes = countHoles(this.matrix);
+      const heights = computeHeights(this.liveMatrix());
+      const holes = countHoles(this.liveMatrix());
       const isPC = heights.every((h) => h === 0);
       let optimal = -1;
       try {
@@ -440,6 +445,14 @@ export class BlockEngine {
       this.applyGarbage();
       if (this.gameOver) return;
     }
+    // The floor comes up last, once all that is in the log.
+    if (this.floorRule && this.clock >= this.floorRule.start) {
+      const due = Math.floor((this.clock - this.floorRule.start) / this.floorRule.every) + 1;
+      if (due > this.floor) {
+        this.raiseFloor(due - this.floor);
+        if (this.gameOver) return;
+      }
+    }
 
     if (this.playing) this.spawn();
   }
@@ -448,7 +461,7 @@ export class BlockEngine {
     let cleared = 0;
     let totalCells = 0;
 
-    for (let r = ROWS - 1; r >= 0; r--) {
+    for (let r = ROWS - 1 - this.floor; r >= 0; r--) {
       let full = true;
       for (let c = 0; c < COLS; c++) {
         if (this.matrix[r][c] === EMPTY) {
@@ -464,7 +477,7 @@ export class BlockEngine {
       }
     }
 
-    for (let r = 0; r < ROWS; r++)
+    for (let r = 0; r < ROWS - this.floor; r++)
       for (let c = 0; c < COLS; c++)
         if (this.matrix[r][c] !== EMPTY) totalCells++;
 
@@ -828,7 +841,8 @@ export class BlockEngine {
         this.matrix.shift();
         const row = new Array(COLS).fill(8);
         row[batch.holeCol] = EMPTY;
-        this.matrix.push(row);
+        // Garbage rises on top of the floor, never under it.
+        this.matrix.splice(ROWS - 1 - this.floor, 0, row);
         holes.push(batch.holeCol);
       }
     }
@@ -852,6 +866,31 @@ export class BlockEngine {
       }
       this.updateGhost();
     }
+  }
+
+  // The board above the floor, with empty rows on top in place of the floor's.
+  liveMatrix() {
+    if (!this.floor) return this.matrix;
+    const rows = this.matrix.slice(0, ROWS - this.floor);
+    while (rows.length < ROWS) rows.unshift(new Array(COLS).fill(EMPTY));
+    return rows;
+  }
+
+  // n solid rows come up under the stack; one that pushes a block off the
+  // top ends the game, as garbage does.
+  raiseFloor(n) {
+    let rose = 0;
+    for (; rose < n; rose++) {
+      if (this.floor >= ROWS || this.matrix[0].some((v) => v !== EMPTY)) {
+        this.gameOver = true;
+        this.playing = false;
+        break;
+      }
+      this.matrix.shift();
+      this.matrix.push(new Array(COLS).fill(FLOOR));
+      this.floor++;
+    }
+    if (rose) this.replay.push({ kind: "floor", rows: rose, t: this.clock });
   }
 
   onKeyUp(key) {

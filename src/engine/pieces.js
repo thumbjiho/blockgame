@@ -3,6 +3,14 @@ export const COLS = 10,
   ROWS = 20,
   CELL = 28;
 export const EMPTY = 0;
+// A row of the rising floor (Battle): solid, and never cleared.
+export const FLOOR = 9;
+// Rows of floor at the bottom of a board.
+export const floorOf = (matrix) => {
+  let n = 0;
+  while (n < matrix.length && matrix[matrix.length - 1 - n][0] === FLOOR) n++;
+  return n;
+};
 
 export const COLORS = {
   1: "#41b6e6", // I - cyan

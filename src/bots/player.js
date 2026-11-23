@@ -92,7 +92,7 @@ export class BotPlayer {
   // If a bot gives no answer, place the piece with the built-in heuristic.
   fallback() {
     const e = this.engine;
-    const best = findBestPlacement(e.matrix, e.currentId);
+    const best = findBestPlacement(e.liveMatrix(), e.currentId);
     if (!best) return "V";
     let s = best.rot === 1 ? "c" : best.rot === 3 ? "z" : best.rot === 2 ? "cc" : "";
     const dx = best.x - e.currentX;

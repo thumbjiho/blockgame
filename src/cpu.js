@@ -146,7 +146,7 @@ export class CPUPlayer {
       if (this.target == null) {
         if (now < this.thinkAt) return;
       }
-      const best = findBestPlacement(e.matrix, e.currentId);
+      const best = findBestPlacement(e.liveMatrix(), e.currentId);
       if (!best) return;
       // Inject noise on Easy: shift the target column by ±1..2 sometimes.
       if (Math.random() < this.params.mistake) {

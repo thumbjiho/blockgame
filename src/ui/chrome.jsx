@@ -1,12 +1,12 @@
-// Top bar (always visible, top right): settings, sound, language, theme, full
-// screen. On a phone they fold into one menu, with rows tall enough to tap.
+// Top bar (always visible, top right): settings, sound, language, full
+// screen. The theme lives in Settings only. On a phone they fold into one menu, with rows tall enough to tap.
 import { useEffect, useState } from "react";
 import { sfx } from "../sound.js";
 import { IconButton } from "./primitives.jsx";
 import { ActionMenu } from "./overlays.jsx";
 import { usePhone } from "../fit.js";
 
-export function TopBar({ lang, setLang, theme, setTheme, sound, setSound, onSettings }) {
+export function TopBar({ lang, setLang, sound, setSound, onSettings }) {
   const [full, setFull] = useState(() => !!document.fullscreenElement);
   useEffect(() => {
     const on = () => setFull(!!document.fullscreenElement);
@@ -32,7 +32,6 @@ export function TopBar({ lang, setLang, theme, setTheme, sound, setSound, onSett
           items={[
             { label: "Settings", icon: "gear", onClick: onSettings },
             { label: sound ? "Sound off" : "Sound on", icon: sound ? "sound" : "mute", onClick: () => setSound(!sound) },
-            { label: theme === "light" ? "Dark mode" : "Light mode", icon: theme === "light" ? "moon" : "sun", onClick: () => setTheme(theme === "light" ? "dark" : "light") },
             { label: lang === "ko" ? "English" : "한국어", icon: "globe", onClick: () => setLang(lang === "ko" ? "en" : "ko") },
             ...(canFull ? [{ label: full ? "Exit full screen" : "Full screen", icon: full ? "shrink" : "expand", onClick: toggleFull }] : []),
           ]}
@@ -52,7 +51,6 @@ export function TopBar({ lang, setLang, theme, setTheme, sound, setSound, onSett
       >
         {lang === "ko" ? "한" : "EN"}
       </button>
-      <IconButton icon={theme === "light" ? "moon" : "sun"} label={theme === "light" ? "Dark mode" : "Light mode"} onClick={click(() => setTheme(theme === "light" ? "dark" : "light"))} />
       {canFull && (
         <IconButton
           icon={full ? "shrink" : "expand"}

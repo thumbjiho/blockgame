@@ -37,7 +37,7 @@
 // Reading a run back needs the same ranking and the same odds, so changing
 // cost, ODDS or the engine's piece order means a new VERSION: codes made
 // before stop opening.
-import { COLS, ROWS, getShape, pieceOrder } from "./game.js";
+import { COLS, ROWS, FLOOR, floorOf, getShape, pieceOrder } from "./game.js";
 import { parseLog, logMode } from "./replay.js";
 import { finesseScore } from "./analysis.js";
 
@@ -125,7 +125,7 @@ function restY(matrix, id, x, rot) {
 function settle(matrix, id, x, y, rot) {
   const next = matrix.map((row) => row.slice());
   getShape(id, rot).forEach((row, r) => row.forEach((on, c) => on && next[y + r]?.[x + c] !== undefined && (next[y + r][x + c] = id)));
-  const kept = next.filter((row) => row.some((v) => !v));
+  const kept = next.filter((row) => row[0] === FLOOR || row.some((v) => !v));
   const cleared = ROWS - kept.length;
   while (kept.length < ROWS) kept.unshift(new Array(COLS).fill(0));
   return [kept, cleared];
@@ -181,7 +181,7 @@ function dealtOf(events) {
   let hold = null;
   let take = true;
   for (const ev of events) {
-    if (ev.kind === "garbage") continue; // rising rows deal nothing
+    if (ev.kind === "garbage" || ev.kind === "floor") continue; // rising rows deal nothing
     if (take) dealt.push(LETTERS.indexOf(ev.type));
     if (ev.kind === "hold") {
       take = hold === null;
@@ -286,6 +286,10 @@ function unpackSprint(packed) {
 // tells.
 const BATTLE = 9;
 const SPRINT = 10;
+// Version 11: a Battle board whose floor rose (see BlockEngine.floorRule).
+// After each piece (and the garbage under it), whether the floor rose, and
+// by how many rows.
+const RISING = 11;
 const BOTS = ["Cold Clear", "MisaMino", "Stacker"];
 const BOT_LEVELS = ["Easy", "Normal", "Hard", "Max"];
 const HANDICAP_ODDS = [1, 1, 2, 16, 2, 1, 1];
@@ -313,10 +317,23 @@ function rise(matrix, holes) {
     next.shift();
     const row = new Array(COLS).fill(8);
     row[hole] = 0;
-    next.push(row);
+    next.splice(ROWS - 1 - floorOf(next), 0, row); // on top of the floor
   }
   return next;
 }
+// The floor coming up n rows (Battle, version 11).
+function raise(matrix, n) {
+  const next = matrix.map((row) => row.slice());
+  for (let i = 0; i < n; i++) {
+    next.shift();
+    next.push(new Array(COLS).fill(FLOOR));
+  }
+  return next;
+}
+// Whether the floor rose after this piece. It rises on a clock, so after
+// about as many pieces as last time: the odds follow how far along that gap
+// the run is (no rise yet; well short of it; about there; past it).
+const floorContext = (since, gap) => (gap < 0 ? 0 : since < gap - 2 ? 1 : since <= gap + 2 ? 2 : 3);
 // Every place a piece can be tucked into: resting, but below where it would
 // fall straight to. Tidiest first, as [stand, row].
 function tucks(matrix, id) {
@@ -388,6 +405,11 @@ function packTight(text, events, mode) {
   const rose = [flag(), flag()]; // after a piece that cleared nothing / cleared lines
   const moved = flag();
   const sizes = new Array(ROW_ODDS.length).fill(0);
+  const rising = battle && events.some((e) => e.kind === "floor");
+  const floorUp = [flag(), flag(), flag(), flag()];
+  const more = flag();
+  let since = 0;
+  let gap = -1;
   let matrix = emptyBoard();
   let left = [];
   let next = 0;
@@ -398,7 +420,7 @@ function packTight(text, events, mode) {
   let lastHole = -1;
   for (let n = 0; n < count; n++) {
     const ev = events[n];
-    if (ev.kind === "garbage") return null; // only ever right after a piece, below
+    if (ev.kind === "garbage" || ev.kind === "floor") return null; // only ever right after a piece, below
     if (take) {
       current = dealt[next++];
       if (how === BAGS) {
@@ -446,28 +468,41 @@ function packTight(text, events, mode) {
     const up = events[n + 1]?.kind === "garbage" ? events[n + 1] : null;
     if (!battle) continue;
     if (n + 1 < count) putFlag(body, rose[cleared ? 1 : 0], !!up);
-    if (!up) continue;
+    if (up) {
+      n++;
+      const holes = up.holes;
+      if (!holes.length || holes.length > ROW_ODDS.length || holes.some((h) => !(h >= 0 && h < COLS))) return null;
+      body.push(pick(rowShares(sizes), holes.length - 1));
+      sizes[holes.length - 1]++;
+      holes.forEach((h, i) => {
+        if (i) putFlag(body, moved, h !== holes[i - 1]);
+        if (i && h === holes[i - 1]) return;
+        // A new hole, never where the one before it was (the engine moves it),
+        // though a cancelled batch can bring the old place back.
+        const prev = i ? holes[i - 1] : lastHole;
+        if (i) body.push([h - (h > prev ? 1 : 0), 1, COLS - 1]);
+        else body.push(prev < 0 ? [h, 1, COLS] : pick(Array.from({ length: COLS }, (_, c) => (c === prev ? 1 : 8)), h));
+      });
+      lastHole = holes.at(-1);
+      matrix = rise(matrix, holes);
+    }
+    // Did the floor rise?
+    if (!rising) continue;
+    since++;
+    const lift = events[n + 1]?.kind === "floor" ? events[n + 1] : null;
+    if (n + 1 < count) putFlag(body, floorUp[floorContext(since, gap)], !!lift);
+    if (!lift) continue;
     n++;
-    const holes = up.holes;
-    if (!holes.length || holes.length > ROW_ODDS.length || holes.some((h) => !(h >= 0 && h < COLS))) return null;
-    body.push(pick(rowShares(sizes), holes.length - 1));
-    sizes[holes.length - 1]++;
-    holes.forEach((h, i) => {
-      if (i) putFlag(body, moved, h !== holes[i - 1]);
-      if (i && h === holes[i - 1]) return;
-      // A new hole, never where the one before it was (the engine moves it),
-      // though a cancelled batch can bring the old place back.
-      const prev = i ? holes[i - 1] : lastHole;
-      if (i) body.push([h - (h > prev ? 1 : 0), 1, COLS - 1]);
-      else body.push(prev < 0 ? [h, 1, COLS] : pick(Array.from({ length: COLS }, (_, c) => (c === prev ? 1 : 8)), h));
-    });
-    lastHole = holes.at(-1);
-    matrix = rise(matrix, holes);
+    if (!(lift.rows >= 1 && lift.rows <= ROWS)) return null;
+    for (let i = 1; i < Math.min(lift.rows + 1, ROWS); i++) putFlag(body, more, i < lift.rows);
+    matrix = raise(matrix, lift.rows);
+    gap = since;
+    since = 0;
   }
   const scored = events.filter((e) => e.kind === "place" && e.optimal > 0);
   const finesse = mode.finesse ?? finesseScore(scored.filter((e) => !e.finesseFault).length, scored.length);
   const top = [
-    [battle ? BATTLE : SPRINT, 16],
+    [battle ? (rising ? RISING : BATTLE) : SPRINT, 16],
     ...(battle ? [] : [[Math.min(1023, mode.lines || 0), 1024]]),
     [count, 4096],
     // A Battle's time to the hundredth, a Sprint's to the thousandth.
@@ -484,8 +519,13 @@ function unpackTight(packed) {
   try {
     const get = reader(packed);
     const version = get(16);
-    if (version !== BATTLE && version !== SPRINT) return null;
-    const battle = version === BATTLE;
+    if (version !== BATTLE && version !== SPRINT && version !== RISING) return null;
+    const battle = version !== SPRINT;
+    const rising = version === RISING;
+    const floorUp = [flag(), flag(), flag(), flag()];
+    const more = flag();
+    let since = 0;
+    let gap = -1;
     const goal = battle ? 0 : get(1024);
     const count = get(4096);
     const end = battle ? get(2 ** 19) * 10 : get(2 ** 22);
@@ -549,26 +589,38 @@ function unpackTight(packed) {
       const spin = filled >= 3 && getFlag(get, spun);
       combo = cleared ? combo + 1 : 0;
       const name = cleared ? (spin ? `T-Spin ${front ? "" : "Mini "}${LINES[cleared]}` : LINES[cleared]) : "";
-      const words = [name + (combo > 1 ? ` Combo ${combo - 1}` : ""), cleared && matrix.every((row) => row.every((v) => !v)) ? "PC" : ""].filter(Boolean).join(" ");
+      const words = [name + (combo > 1 ? ` Combo ${combo - 1}` : ""), cleared && matrix.every((row) => row[0] === FLOOR || row.every((v) => !v)) ? "PC" : ""].filter(Boolean).join(" ");
       line(n, `${LETTERS[current]} spawn(3,-1) → placed(${x},${y}) rot=${rot} | keys=0${words ? ` | ${words}` : ""}`);
       take = true;
       canHold = true;
-      if (!battle || n + 1 >= count || !getFlag(get, rose[cleared ? 1 : 0])) continue;
-      n++;
-      const holes = [];
-      const size = get.of(rowShares(sizes));
-      sizes[size]++;
-      for (let i = size; i >= 0; i--) {
-        const prev = holes.length ? holes.at(-1) : lastHole;
-        if (holes.length && !getFlag(get, moved)) holes.push(prev);
-        else if (holes.length) {
-          const h = get(COLS - 1);
-          holes.push(h >= prev ? h + 1 : h);
-        } else holes.push(prev < 0 ? get(COLS) : get.of(Array.from({ length: COLS }, (_, c) => (c === prev ? 1 : 8))));
+      if (!battle) continue;
+      if (n + 1 < count && getFlag(get, rose[cleared ? 1 : 0])) {
+        n++;
+        const holes = [];
+        const size = get.of(rowShares(sizes));
+        sizes[size]++;
+        for (let i = size; i >= 0; i--) {
+          const prev = holes.length ? holes.at(-1) : lastHole;
+          if (holes.length && !getFlag(get, moved)) holes.push(prev);
+          else if (holes.length) {
+            const h = get(COLS - 1);
+            holes.push(h >= prev ? h + 1 : h);
+          } else holes.push(prev < 0 ? get(COLS) : get.of(Array.from({ length: COLS }, (_, c) => (c === prev ? 1 : 8))));
+        }
+        lastHole = holes.at(-1);
+        matrix = rise(matrix, holes);
+        line(n, `garbage +${holes.length} holes=[${holes.join(",")}]`);
       }
-      lastHole = holes.at(-1);
-      matrix = rise(matrix, holes);
-      line(n, `garbage +${holes.length} holes=[${holes.join(",")}]`);
+      if (!rising) continue;
+      since++;
+      if (n + 1 >= count || !getFlag(get, floorUp[floorContext(since, gap)])) continue;
+      n++;
+      let rows = 1;
+      while (rows < ROWS && getFlag(get, more)) rows++;
+      matrix = raise(matrix, rows);
+      line(n, `floor +${rows}`);
+      gap = since;
+      since = 0;
     }
     const title = battle ? `BATTLE ${seatText(seats[0])} vs ${seatText(seats[1])}` : `SPRINT ${goal}L`;
     return [`${title} | FNS:${finesse}${deal ? ` | SEED:${seed}` : ""}`, "", ...lines].join("\n");

@@ -40,8 +40,8 @@ export default function Settings({ values, onSave, onClose }) {
   // Every edit is a draft until Save; leaving without saving drops it.
   const [draft, setDraft] = useState(values);
   const put = (key) => (v) => setDraft((d) => ({ ...d, [key]: typeof v === "function" ? v(d[key]) : v }));
-  const { das, arr, sdf, soundEnabled, soundOpts, skin, cellLines, orientMark } = draft;
-  const [setDas, setArr, setSdf, setSoundEnabled, setSoundOpts, setSkin, setCellLines, setOrientMark] = ["das", "arr", "sdf", "soundEnabled", "soundOpts", "skin", "cellLines", "orientMark"].map(put);
+  const { das, arr, sdf, soundEnabled, soundOpts, skin, cellLines, orientMark, theme } = draft;
+  const [setDas, setArr, setSdf, setSoundEnabled, setSoundOpts, setSkin, setCellLines, setOrientMark, setTheme] = ["das", "arr", "sdf", "soundEnabled", "soundOpts", "skin", "cellLines", "orientMark", "theme"].map(put);
   const [saved] = useState(() => loadKeyBindings());
   const [bindings, setBindings] = useState(saved);
   const [confirmReset, setConfirmReset] = useState(false);
@@ -261,6 +261,26 @@ export default function Settings({ values, onSave, onClose }) {
                 ]}
                 value={!!orientMark}
                 onChange={setOrientMark}
+              />
+            </div>
+            {/* Dark is the page as designed; light is still unfinished, so it
+                sits here, out of the way, marked Beta. */}
+            <div className="opt wide">
+              <div>
+                <div className="k" style={{ color: "var(--fg)" }}>
+                  {t("Theme")}
+                  <span className="tag beta">{t("Beta")}</span>
+                </div>
+                <div className="k small hint">{t("Light mode is still being finished")}</div>
+              </div>
+              <Segmented
+                label="Theme"
+                options={[
+                  { id: "dark", label: "Dark" },
+                  { id: "light", label: "Light" },
+                ]}
+                value={theme === "light" ? "light" : "dark"}
+                onChange={setTheme}
               />
             </div>
           </div>
