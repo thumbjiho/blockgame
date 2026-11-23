@@ -285,11 +285,24 @@ function filter(canvas, text) {
 
 const blendOf = (mode) => (mode === "normal" ? "source-over" : mode);
 
-// An element (or one of its ::before / ::after) painted on its own, W × H,
-// its pseudo-elements in it, its filter on all of it. Null when not shown.
-async function paint(el, pseudo, W, H, scale) {
+// What painting a layer needs of its style, copied out at once, so the card
+// can be posed for the picture and put back before the screen shows it.
+const PROPS = ["display", "content", "backgroundImage", "backgroundSize", "backgroundPosition", "backgroundRepeat", "backgroundBlendMode", "mixBlendMode", "opacity", "filter", "maskImage", "webkitMaskImage", "maskSize", "webkitMaskSize", "maskPosition", "webkitMaskPosition", "maskRepeat", "webkitMaskRepeat"];
+function read(el, pseudo) {
   const s = getComputedStyle(el, pseudo);
-  if (s.display === "none" || (pseudo && (s.content === "none" || s.content === "normal"))) return null;
+  const out = {};
+  for (const k of PROPS) out[k] = s[k];
+  return out;
+}
+// The foil's layers on a card, as they are styled right now.
+export function snapshot(card) {
+  return [...card.querySelectorAll(":scope .card__shine, :scope .card__glare")].map((el) => ({ style: read(el, ""), before: read(el, "::before"), after: read(el, "::after") }));
+}
+
+// A layer (an element, or one of its ::before / ::after) painted on its own,
+// W × H, its pseudo-elements in it, its filter on all of it. Null when not shown.
+async function paint(s, children, W, H, scale) {
+  if (s.display === "none" || (children === null && (s.content === "none" || s.content === "normal"))) return null;
   const canvas = canvasOf(W, H);
   const ctx = canvas.getContext("2d");
   const list = s.backgroundImage === "none" ? [] : split(s.backgroundImage);
@@ -303,17 +316,14 @@ async function paint(el, pseudo, W, H, scale) {
     await layer(ctx, list[i], at(s.backgroundSize, i), at(s.backgroundPosition, i), at(s.backgroundRepeat, i), W, H, scale);
   }
   ctx.globalCompositeOperation = "source-over";
-  if (!pseudo) {
-    for (const p of ["::before", "::after"]) {
-      const child = await paint(el, p, W, H, scale);
-      if (!child) continue;
-      const cs = getComputedStyle(el, p);
-      ctx.globalCompositeOperation = blendOf(cs.mixBlendMode);
-      ctx.globalAlpha = parseFloat(cs.opacity);
-      ctx.drawImage(child, 0, 0);
-      ctx.globalAlpha = 1;
-      ctx.globalCompositeOperation = "source-over";
-    }
+  for (const cs of children || []) {
+    const child = await paint(cs, null, W, H, scale);
+    if (!child) continue;
+    ctx.globalCompositeOperation = blendOf(cs.mixBlendMode);
+    ctx.globalAlpha = parseFloat(cs.opacity);
+    ctx.drawImage(child, 0, 0);
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = "source-over";
   }
   const mask = s.maskImage && s.maskImage !== "none" ? s.maskImage : s.webkitMaskImage && s.webkitMaskImage !== "none" ? s.webkitMaskImage : null;
   if (mask) {
@@ -332,21 +342,20 @@ async function paint(el, pseudo, W, H, scale) {
   return canvas;
 }
 
-// The card's foil layers (its children other than the picture) over the card's
-// picture, as on screen. card: the .card element showing; base: the picture.
-export async function bakeLive(card, base) {
+// The foil (a snapshot of the card's layers) over the card's picture, as on
+// screen. width: how wide the card showing it is, in CSS pixels.
+export async function bakeLive(layers, width, base) {
   const W = base.width;
   const H = base.height;
-  const scale = W / card.clientWidth;
+  const scale = W / width;
   const out = canvasOf(W, H);
   const ctx = out.getContext("2d");
   ctx.drawImage(base, 0, 0);
-  for (const el of card.querySelectorAll(":scope .card__shine, :scope .card__glare")) {
-    const layerCanvas = await paint(el, "", W, H, scale);
+  for (const { style, before, after } of layers) {
+    const layerCanvas = await paint(style, [before, after], W, H, scale);
     if (!layerCanvas) continue;
-    const s = getComputedStyle(el);
-    ctx.globalCompositeOperation = blendOf(s.mixBlendMode);
-    ctx.globalAlpha = parseFloat(s.opacity);
+    ctx.globalCompositeOperation = blendOf(style.mixBlendMode);
+    ctx.globalAlpha = parseFloat(style.opacity);
     ctx.drawImage(layerCanvas, 0, 0);
   }
   ctx.globalAlpha = 1;

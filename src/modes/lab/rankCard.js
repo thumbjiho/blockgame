@@ -183,11 +183,12 @@ export function cardImage(what) {
   return drawn.get(key);
 }
 
-// The picture saved: the card with its foil as it is on screen at that
-// moment (card: the .card showing it; without one, the bare card).
-export async function saveRankCard(what, card) {
+// The picture saved: the card with its foil as on screen (foil: a snapshot
+// of its layers, from holo/bake.js, and the width of the card it was taken
+// from; without one, the bare card).
+export async function saveRankCard(what, foil) {
   const base = drawRankCard(what);
-  const picture = card ? await bakeLive(card, base).catch(() => base) : base;
+  const picture = foil ? await bakeLive(foil.layers, foil.width, base).catch(() => base) : base;
   picture.toBlob((blob) => {
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);

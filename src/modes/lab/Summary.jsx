@@ -4,6 +4,7 @@ import { KIND_NAMES, SCORES } from "./consts.js";
 import { pointsOf, rankOf } from "./rank.js";
 import { cardImage, saveRankCard } from "./rankCard.js";
 import { foilOf, preloadFoils } from "../../holo/foils.js";
+import { snapshot } from "../../holo/bake.js";
 import { Button, Icon, IconButton } from "../../ui.jsx";
 import { loadName, saveName, NAME_MAX, NAME_PLACEHOLDER } from "../../name.js";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -192,6 +193,18 @@ function RankCardView({ what: given, from, onClose }) {
     turnTo(within((clientX - box.left) / box.width - 0.5), within((clientY - box.top) / box.height - 0.5));
   };
   const lean = (e) => toward(e.clientX, e.clientY);
+  // Saving: the foil is caught lit from far up and to the right, the same on
+  // every card and clear of the writing, whatever the pointer is doing. The
+  // card is posed, its layers copied, and put back within one frame, so the
+  // screen never shows the pose.
+  const save = () => {
+    const el = cardRef.current;
+    if (!el?.querySelector(".card__shine")) return saveRankCard(what);
+    face(0.5, -0.5);
+    const layers = snapshot(el);
+    face(faces.current.x, faces.current.y);
+    saveRankCard(what, { layers, width: el.clientWidth });
+  };
   const rest = () => turnTo(0, 0);
   useEffect(() => {
     // Opened by a click: the pointer is already somewhere over the screen.
@@ -253,7 +266,7 @@ function RankCardView({ what: given, from, onClose }) {
           <IconButton icon="close" label="Cancel" size="m" onClick={() => setEditing(false)} />
         </form>
         <div className={"lab-cardview-actions" + (editing ? "" : " on")}>
-        <Button variant="primary" size="l" icon="download" onClick={() => saveRankCard(what, cardRef.current)}>
+        <Button variant="primary" size="l" icon="download" onClick={save}>
           {t("Save as image")}
         </Button>
         {given.name ? (
