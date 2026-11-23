@@ -18,7 +18,7 @@
 @keyframes enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 @keyframes appear { from { opacity: 0; } to { opacity: 1; } }
 
-.page > *, .home > *, .actions > *, .veil > *, .row-btns > * {
+.page > *, .home > *, .actions > *, .action-row > *, .veil > *, .row-btns > * {
   animation: enter 0.42s var(--out) both;
   animation-delay: calc(var(--i, 0) * 40ms);
 }
@@ -27,6 +27,10 @@
   animation-delay: calc(120ms + var(--i, 0) * 35ms);
 }
 .actions > * { animation-delay: calc(200ms + var(--i, 0) * 40ms); }
+/* Start and Back come in one after the other; their row itself does not move. */
+.actions > .action-row { animation: none; }
+.action-row > * { animation-delay: calc(200ms + var(--i, 0) * 40ms); }
+.action-row > :nth-child(2) { animation-delay: calc(240ms + var(--i, 0) * 40ms); }
 .row-btns > * { animation-delay: calc(160ms + var(--i, 0) * 40ms); }
 /* Game screens only fade in (no movement), before play starts. */
 .play > * { animation: appear 0.35s var(--out) both; animation-delay: calc(var(--i, 0) * 50ms); }

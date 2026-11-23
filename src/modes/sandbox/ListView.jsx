@@ -62,12 +62,14 @@ export default function ListView(p) {
         ))}
       </div>
       <div className="actions">
-        <button className="btn primary" onClick={createBoard}>
-          {t("New board")}
-        </button>
-        <button className="btn ghost" onClick={onBack}>
-          {t("Back")}
-        </button>
+        <div className="action-row">
+          <button className="btn ghost" onClick={onBack}>
+            {t("Back")}
+          </button>
+          <button className="btn primary" onClick={createBoard}>
+            {t("New board")}
+          </button>
+        </div>
       </div>
       {dialogs}
     </div>

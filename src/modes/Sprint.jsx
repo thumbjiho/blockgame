@@ -349,12 +349,14 @@ export default function Sprint({ settings, onBack }) {
         </div>
         <div className="actions">
           <SetupInfo settings={settings} />
-          <button className="btn primary" onClick={startGame}>
-            {t("Start")}
-          </button>
-          <button className="btn ghost" onClick={onBack}>
-            {t("Back")}
-          </button>
+          <div className="action-row">
+            <button className="btn ghost" onClick={onBack}>
+              {t("Back")}
+            </button>
+            <button className="btn primary" onClick={startGame}>
+              {t("Start")}
+            </button>
+          </div>
         </div>
       </div>
     );

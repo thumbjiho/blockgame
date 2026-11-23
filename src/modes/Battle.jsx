@@ -7,7 +7,7 @@ import { BotPlayer } from "../bots/player.js";
 import { createTrace } from "../trace.js";
 import { buildKeyMap, loadKeyBindings } from "../keys.js";
 import { drawBoard, drawHold, drawQueue, prep, boardTone, BOARD_W, BOARD_H, HOLD_W, HOLD_H, SLOT } from "../render.js";
-import { SetupInfo, Countdown, KeyHints, Dropdown, Stepper, EngineLog, KeyStrokes, Icon, Stat } from "../ui.jsx";
+import { SetupInfo, Countdown, KeyHints, Dropdown, Stepper, EngineLog, KeyStrokes, Icon, Stat, Switch, Advanced } from "../ui.jsx";
 import { sfx, sfxForAction, trackSfx } from "../sound.js";
 import { useFit } from "../fit.js";
 
@@ -91,17 +91,17 @@ function loadBattlePrefs() {
   }
 }
 
-// The rising floor, always on: from 30 seconds in, one solid row every two
-// seconds, so a match between two who never top out still ends (and its log
-// stays short enough for a QR code). It stops at 15 rows, leaving 5 at the
-// top to play in.
+// The rising floor (on unless turned off in the advanced settings): from 30
+// seconds in, one solid row every two seconds, so a match between two who
+// never top out still ends (and its log stays short enough for a QR code).
+// It stops at 15 rows, leaving 5 at the top to play in.
 const FLOOR_RULE = { start: 30, every: 2, max: 15 };
 
-function createEngine(settings, attackBonus = 0, seed) {
+function createEngine(settings, attackBonus = 0, seed, floor = true) {
   return new BlockEngine({
     attackBonus,
     seed,
-    floor: FLOOR_RULE,
+    floor: floor ? FLOOR_RULE : null,
     das: settings.das,
     arr: settings.arr,
     sdf: settings.sdf,
@@ -237,6 +237,8 @@ export default function Battle({ settings, onBack }) {
   const [rightBot, setRightBot] = useState(saved.rightBot ?? "cc");
   const [leftHandicap, setLeftHandicap] = useState(saved.leftHandicap ?? 0);
   const [rightHandicap, setRightHandicap] = useState(saved.rightHandicap ?? 0);
+  const [risingFloor, setRisingFloor] = useState(saved.risingFloor ?? true);
+  const [advOpen, setAdvOpen] = useState(false); // always starts folded
   const humanSeats = [left, right].filter((x) => x !== "cpu").length;
   // Only the key profiles this match uses can take J or K away from the toggles.
   useDisplayToggles(settings, humanSeats === 2 ? ["p1", "p2"] : humanSeats === 1 ? ["solo"] : []);
@@ -271,11 +273,11 @@ export default function Battle({ settings, onBack }) {
   }, [settings]);
   useEffect(() => {
     try {
-      localStorage.setItem("jbl-battle", JSON.stringify({ left, right, leftLevel, rightLevel, leftBot, rightBot, leftHandicap, rightHandicap }));
+      localStorage.setItem("jbl-battle", JSON.stringify({ left, right, leftLevel, rightLevel, leftBot, rightBot, leftHandicap, rightHandicap, risingFloor }));
     } catch {
       /* ignore */
     }
-  }, [left, right, leftLevel, rightLevel, leftBot, rightBot, leftHandicap, rightHandicap]);
+  }, [left, right, leftLevel, rightLevel, leftBot, rightBot, leftHandicap, rightHandicap, risingFloor]);
 
   const reloadKeys = useCallback(() => {
     const all = loadKeyBindings();
@@ -379,13 +381,13 @@ export default function Battle({ settings, onBack }) {
     reloadKeys();
     // Same seed on both sides: both players get exactly the same pieces.
     const seed = Math.floor(Math.random() * 2 ** 31);
-    engine1Ref.current = createEngine(settingsRef.current, leftHandicap, seed);
-    engine2Ref.current = createEngine(settingsRef.current, rightHandicap, seed);
+    engine1Ref.current = createEngine(settingsRef.current, leftHandicap, seed, risingFloor);
+    engine2Ref.current = createEngine(settingsRef.current, rightHandicap, seed, risingFloor);
     for (const c of cpusRef.current) c.dispose?.();
     cpusRef.current = [];
     setWinner(null);
     runCountdown();
-  }, [runCountdown, reloadKeys, leftHandicap, rightHandicap, cancelCountdown]);
+  }, [runCountdown, reloadKeys, leftHandicap, rightHandicap, risingFloor, cancelCountdown]);
 
   // Pause (Esc). A match is shared, so nothing restarts from a single key:
   // rematch and exit live in the pause menu.
@@ -572,8 +574,20 @@ export default function Battle({ settings, onBack }) {
     return (
       <div className="page wide" style={{ "--accent": "#e8505b" }}>
         <h1 className="title">{t("Battle")}</h1>
+        {/* With both sides CPU the line under the title says so instead (one
+            line either way, so nothing below moves). */}
         <p className="lede">
-          {t("Clear lines to attack until your opponent tops out.")}
+          {bothCpu ? (
+            <span className="warn">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 3.5 22 20.5H2Z" />
+              <path d="M12 10v4.5M12 17.2v.3" />
+            </svg>
+              {t("Both sides are CPU, so you'll be watching.")}
+            </span>
+          ) : (
+            t("Clear lines to attack until your opponent tops out.")
+          )}
         </p>
         <div className="opts fill">
           <div className="seats">
@@ -611,26 +625,23 @@ export default function Battle({ settings, onBack }) {
               </Fragment>
             ))}
           </div>
-          <p className="note slot-note">
-            {bothCpu ? (
-              <span className="warn">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M12 3.5 22 20.5H2Z" />
-                  <path d="M12 10v4.5M12 17.2v.3" />
-                </svg>
-                {t("Both sides are CPU, so you'll be watching.")}
-              </span>
-            ) : null}
-          </p>
+          <Advanced open={advOpen} onToggle={() => setAdvOpen((o) => !o)} changed={risingFloor ? [] : ["Rising floor off"]}>
+            {/* Turned off, its hint becomes the warning: a long match may not fit a QR code. */}
+            <div className={"opt switches" + (risingFloor ? "" : " floor-off")}>
+              <Switch label="Rising floor" hint={risingFloor ? "From 0:30, a solid row every 2 seconds" : "Long matches may not fit a QR code."} checked={risingFloor} onChange={setRisingFloor} />
+            </div>
+          </Advanced>
         </div>
         <div className="actions">
           <SetupInfo settings={settings} profiles={humans === 2 ? ["p1", "p2"] : humans === 1 ? ["solo"] : []} />
-          <button className="btn primary" onClick={startGame}>
-            {t("Start")}
-          </button>
-          <button className="btn ghost" onClick={onBack}>
-            {t("Back")}
-          </button>
+          <div className="action-row">
+            <button className="btn ghost" onClick={onBack}>
+              {t("Back")}
+            </button>
+            <button className="btn primary" onClick={startGame}>
+              {t("Start")}
+            </button>
+          </div>
         </div>
       </div>
     );

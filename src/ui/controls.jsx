@@ -82,7 +82,14 @@ export function Segmented({ options, value, onChange, focus = false, label }) {
 // changed setting is never hidden. Expanding is a CSS transition (interruptible).
 export function Advanced({ open, onToggle, changed = [], children }) {
   return (
-    <div className={"adv" + (open ? " open" : "")}>
+    <div
+      className={"adv" + (open ? " open" : "")}
+      // Opened where the settings band is short, the band scrolls to show
+      // what opened (the page itself never scrolls, see base.css).
+      onTransitionEnd={(e) => {
+        if (open && e.target.classList.contains("adv-body")) e.currentTarget.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      }}
+    >
       <button
         type="button"
         className="adv-toggle"

@@ -36,4 +36,10 @@
 .swap:hover .swap-vs, .swap:focus-visible .swap-vs { opacity: 0; transform: scale(0.8); }
 .swap:hover svg, .swap:focus-visible svg { opacity: 1; transform: none; }
 .swap:active svg { transform: rotate(180deg); }
-.slot-note { margin: 20px 0 0; min-height: 1.6em; text-align: center; }
+.opts.fill .adv { margin-top: 12px; }
+.opts.fill .adv-inner { padding-top: 10px; }
+
+/* The rising floor off: its hint is a warning. */
+.floor-off .switch-hint { color: #f2cb4c; }
+/* The CPU note in the line under the title: the same height as the text it replaces. */
+.lede .warn { vertical-align: top; height: 1.55em; }

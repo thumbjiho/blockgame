@@ -210,12 +210,14 @@ export default function Lab({ settings, initial = "", shared = false, onBack }) 
         }}
       />
       <div className="actions">
-        <button className="btn primary" onClick={() => setOpen(true)} disabled={!replay}>
-          {t("Play replay")}
-        </button>
-        <button className="btn ghost" onClick={onBack}>
-          {t("Back")}
-        </button>
+        <div className="action-row">
+          <button className="btn ghost" onClick={onBack}>
+            {t("Back")}
+          </button>
+          <button className="btn primary" onClick={() => setOpen(true)} disabled={!replay}>
+            {t("Play replay")}
+          </button>
+        </div>
       </div>
     </div>
   );

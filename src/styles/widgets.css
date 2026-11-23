@@ -19,6 +19,7 @@
   transition: background 0.2s var(--out);
 }
 .dd-btn:hover, .dd.open .dd-btn { background: var(--hover); }
+.dd-btn > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .dd-chev { width: 14px; height: 14px; fill: none; stroke: var(--dim); stroke-width: 1.6; transition: transform 0.25s var(--out); }
 .dd.open .dd-chev { transform: rotate(180deg); }
 .dd-menu {
@@ -64,9 +65,11 @@
 .dd-menu button:disabled { color: var(--muted); cursor: default; }
 .dd-note { font-size: var(--t1); color: var(--faint); text-transform: none; letter-spacing: 0.02em; }
 
-/* Battle: the seat cards fill the height between the title and the actions. */
-.page > .opts.fill { flex: 1; min-height: 0; margin-bottom: 0; padding-bottom: 8px; justify-content: stretch; }
-.opts.fill .seats { flex: 1; min-height: 0; width: 100%; }
+/* Battle: the seat cards keep their own height and the actions stay at the
+   bottom; the advanced settings open into the room between, moving neither. */
+.page > .opts.fill { flex: 1; min-height: 0; margin-bottom: 0; padding-bottom: 0; justify-content: flex-start; }
+.opts.fill .seats { flex: none; width: 100%; }
+.page > .opts.fill ~ .actions { padding-top: 14px; }
 .opts.fill .seat { width: 280px; padding: 22px 22px 20px; }
 .seat-id { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 6px; padding: 16px 0; }
 .opts.fill .seat-name { font-size: var(--t7); line-height: 1; letter-spacing: -0.01em; }
@@ -444,8 +447,6 @@ html, body { transition: background-color 0.25s var(--out), color 0.25s var(--ou
 .seat-sub, .seat .seat-sub { line-height: 16px; height: 16px; white-space: nowrap; }
 /* The note under the seats is either a warning (with icon) or a sentence; give
    it one fixed line box so the seats above never change height. */
-.slot-note { height: 20px; min-height: 0; line-height: 20px; white-space: nowrap; }
-.slot-note .warn { vertical-align: top; height: 20px; }
 
 /* ─── Focus warning (game keeps running) ─── */
 .focus-warn {

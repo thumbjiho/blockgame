@@ -25,9 +25,8 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border-radius
 /* ─── Settings ─── */
 .settings { width: 100%; max-width: 480px; margin-top: 24px; text-align: left; min-height: 0; overflow-y: auto; scrollbar-width: none; }
 .settings::-webkit-scrollbar { display: none; }
-/* Settings page: the block may shrink and scroll inside, so the actions never leave the screen. */
-.page > .mid { flex: none; }
-.page > .mid.shrink { min-height: 0; flex: 0 1 auto; } /* Settings only: the list scrolls inside */
+/* The block may shrink and scroll inside (base.css), so the actions never leave the screen. */
+.page > .mid { flex: 0 1 auto; min-height: 0; }
 .settings .opts { margin-top: 0; gap: 0; align-items: stretch; }
 .settings .opt {
   width: 100%;
