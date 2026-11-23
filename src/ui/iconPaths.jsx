@@ -22,6 +22,12 @@ export const PATHS = {
       <circle cx="12" cy="12" r="2.6" />
     </>
   ),
+  warn: (
+    <>
+      <path d="M12 3.5 22 20.5H2Z" />
+      <path d="M12 10v4.5M12 17.2v.3" />
+    </>
+  ),
   help: (
     <>
       <circle cx="12" cy="12" r="9" />

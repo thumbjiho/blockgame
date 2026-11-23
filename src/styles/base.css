@@ -288,7 +288,7 @@ canvas { display: block; }
 .menu button.soon { color: var(--muted); cursor: default; background: var(--fill-faint); }
 .menu button.soon .dot { opacity: 0.3; }
 .menu button.soon.on { border-color: var(--line); background: var(--fill-faint); color: var(--faint); }
-.menu .tag { margin-left: auto; font-size: var(--t1); color: var(--faint); }
+.menu .tag { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; font-size: var(--t1); color: var(--faint); }
 .menu button:focus { outline: none; }
 
 /* ─── Option rows (select screens) ─── */

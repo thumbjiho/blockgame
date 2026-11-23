@@ -372,9 +372,11 @@
 /* The scores' help at the end of the row under the summary. */
 .lab-nav-help { margin-right: 0; }
 .lab-nav-help .lab-help { position: relative; top: auto; right: auto; display: block; }
-/* Beside the board the summary leans toward the shape of the rank card it
-   opens (1080 × 1504), as tall as the column leaves room for, with its
-   contents spread down it. */
-.play:not(.lab-phone) .lab-award { height: 350px; display: flex; flex-direction: column; justify-content: space-between; }
+/* The summary leans toward the shape of the rank card it opens (1080 ×
+   1504), as tall as the column beside the board leaves room for, with its
+   contents spread down it; the Components page lists it at that size. On a
+   phone it is a short row instead. */
+.lab-award { height: 350px; display: flex; flex-direction: column; justify-content: space-between; }
+.lab-phone .lab-award { height: auto; }
 /* Here the screen ends below, so it opens upward, over the card. */
 .lab-nav-help .lab-tip { top: auto; bottom: calc(100% + 6px); transform: translateY(4px); }

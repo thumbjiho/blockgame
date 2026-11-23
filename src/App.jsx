@@ -19,7 +19,7 @@ import Settings from "./modes/Settings.jsx";
 import Experiments from "./modes/Experiments.jsx";
 import ComingSoon from "./modes/ComingSoon.jsx";
 import Sandbox from "./modes/Sandbox.jsx";
-import { KeyHints, TopBar, FocusWarning, Toaster } from "./ui.jsx";
+import { KeyHints, TopBar, FocusWarning, Toaster, Icon } from "./ui.jsx";
 import { useFocusWarning } from "./display.js";
 import { sfx, setSoundEnabled as setSfxEnabled, setSoundOptions } from "./sound.js";
 
@@ -47,9 +47,9 @@ const MODES = [
   { id: "battle", label: "Battle", color: "#e8505b", desc: "One on one against the CPU or a friend on the same keyboard.", ready: true },
   { id: "opening", label: "Opening", color: "#b14fd0", desc: "Practise openers piece by piece: TKI, PCO, DT Cannon, Albatross.", ready: true, beta: true },
   { id: "finesse", label: "Finesse", color: "#5cc45c", desc: "Place each piece in the fewest key presses.", ready: true, beta: true },
-  { id: "lab", label: "Replay", color: "#3fc8b4", desc: "Watch a run again from its log.", ready: true, beta: true },
-  { id: "sandbox", label: "Sandbox", color: "#f2913d", desc: "Build a board, set the pieces, and play it.", ready: true, beta: true },
-  { id: "experiments", label: "Lab", color: "#f2cb4c", desc: "Things being tried out, just for fun.", ready: true, beta: true },
+  { id: "lab", label: "Replay", color: "#3fc8b4", desc: "Watch a run again from its log.", ready: true },
+  { id: "sandbox", label: "Sandbox", color: "#f2913d", desc: "Build a board, set the pieces, and play it.", ready: true },
+  { id: "experiments", label: "Lab", color: "#f2cb4c", desc: "Things being tried out, just for fun.", ready: true, beta: true, warn: true },
 ];
 
 // Next menu row in direction d, skipping modes that are not ready yet.
@@ -291,7 +291,13 @@ export default function App() {
                   <i className="dot" />
                   {t(m.label)}
                   {!m.ready && <span className="tag">{t("Soon")}</span>}
-                  {m.beta && <span className="tag">{t("Beta")}</span>}
+                  {m.beta && (
+                    <span className="tag">
+                      {/* Lab: things that may break. */}
+                      {m.warn && <Icon name="warn" size={12} />}
+                      {t("Beta")}
+                    </span>
+                  )}
                 </button>
               ))}
             </div>

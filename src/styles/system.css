@@ -104,7 +104,8 @@
 .cat-knob { display: grid; grid-template-columns: 80px max-content; align-items: center; }
 .cat-code { grid-column: 1 / -1; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: var(--t2); color: var(--dim); }
 .cat-matrix { display: grid; grid-template-columns: 100px repeat(var(--cols), 110px); align-items: center; gap: 10px 0; }
-.cat-ranks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+/* Each card at its real size beside the board (300 × 350). */
+.cat-ranks { display: grid; grid-template-columns: repeat(auto-fill, 300px); gap: 10px; }
 .cat-tip-host { position: relative; font-size: var(--t2); color: var(--dim); cursor: default; }
 .cat-fixed { width: 210px; }
 .cat-well { width: 210px; height: 64px; }
