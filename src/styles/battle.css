@@ -37,13 +37,3 @@
 .swap:hover svg, .swap:focus-visible svg { opacity: 1; transform: none; }
 .swap:active svg { transform: rotate(180deg); }
 .slot-note { margin: 20px 0 0; min-height: 1.6em; text-align: center; }
-
-/* The rising floor's switch, on the note line under the seats: small and bare. */
-.slot-note { display: flex; justify-content: center; align-items: center; gap: 24px; }
-.floor-switch .switch-row { width: auto; max-width: none; padding: 0; gap: 10px; background: transparent; flex-direction: row-reverse; }
-.floor-switch .switch-row:hover { background: transparent; color: var(--fg); }
-.floor-switch .switch-text { flex-direction: row; align-items: baseline; gap: 10px; }
-.floor-switch .switch-label { font-size: var(--t2); }
-.floor-switch .switch { width: 32px; height: 18px; }
-.floor-switch .switch .knob { top: 2px; left: 2px; width: 14px; height: 14px; }
-.floor-switch .switch-row.on .switch .knob { transform: translateX(14px); }

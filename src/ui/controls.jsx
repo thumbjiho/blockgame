@@ -185,16 +185,22 @@ export function Dropdown({ label, value, options, onChange }) {
               role="option"
               aria-selected={o.id === value}
               className={o.id === value ? "on" : ""}
-              disabled={o.disabled || o.id === value}
+              disabled={o.disabled}
               tabIndex={open ? 0 : -1}
               onClick={() => {
+                // The current choice just closes the list.
+                if (o.id === value) {
+                  sfx.tick();
+                  setOpen(false);
+                  return;
+                }
                 sfx.select();
                 onChange(o.id);
                 setOpen(false);
               }}
             >
               <span className="dd-label">
-                {/* The current choice is marked and can't be picked again */}
+                {/* The current choice is marked; picking it again closes the list */}
                 <svg className="dd-check" viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M5 12.5l4.5 4.5L19 7.5" />
                 </svg>

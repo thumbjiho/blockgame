@@ -24,8 +24,8 @@ export class BlockEngine {
     // cancel it, and only garbage that is ready comes up on your next drop.
     this.garbageDelay = settings.garbageDelay ?? 0.5;
     // Battle's rising floor: from `start` seconds on, a solid row that never
-    // clears comes up from the bottom every `every` seconds, so a long match
-    // has to end. null: the floor stays where it is.
+    // clears comes up from the bottom every `every` seconds, up to `max` rows,
+    // so a long match has to end. null: the floor stays where it is.
     this.floorRule = settings.floor ?? null;
     this.validatePlacement = null;
 
@@ -447,7 +447,8 @@ export class BlockEngine {
     }
     // The floor comes up last, once all that is in the log.
     if (this.floorRule && this.clock >= this.floorRule.start) {
-      const due = Math.floor((this.clock - this.floorRule.start) / this.floorRule.every) + 1;
+      // It stops at `max` rows, leaving the top of the board to play in.
+      const due = Math.min(this.floorRule.max ?? ROWS, Math.floor((this.clock - this.floorRule.start) / this.floorRule.every) + 1);
       if (due > this.floor) {
         this.raiseFloor(due - this.floor);
         if (this.gameOver) return;

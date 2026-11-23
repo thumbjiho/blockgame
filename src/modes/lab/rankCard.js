@@ -27,7 +27,10 @@ function rounded(ctx, x, y, w, h, r) {
 
 // what: { letter, step, title, scores: [[label, value]], name, mode, vs, date,
 // time } — time is a finished Sprint's, and then it is the largest line.
-export function drawRankCard({ letter, step, title, scores, name, mode, vs, date, time, link }) {
+// layer: "all"; or "base" (the field, the glass and the seal: what the foil
+// lies on) and "ink" (the writing and the QR code, on a clear canvas), so the
+// writing can sit above the foil and stay crisp.
+export function drawRankCard({ letter, step, title, scores, name, mode, vs, date, time, link }, { layer = "all" } = {}) {
   const canvas = document.createElement("canvas");
   canvas.width = W;
   canvas.height = H;
@@ -35,50 +38,56 @@ export function drawRankCard({ letter, step, title, scores, name, mode, vs, date
   const font = getComputedStyle(document.body).fontFamily;
   const { seal, field } = THEMES[letter];
   const fancy = seal.length > 1;
-  const text = (s, x, y, size, weight, color, align = "center") => {
+  const under = layer !== "ink";
+  const over = layer !== "base";
+  const paintText = (s, x, y, size, weight, color, align = "center") => {
     ctx.font = `${weight} ${size}px ${font}`;
     ctx.textAlign = align;
     ctx.fillStyle = color;
     ctx.fillText(s, x, y);
   };
+  // The writing (white) goes on the ink layer.
+  const text = (...args) => over && paintText(...args);
 
-  // The field: a dark base with three soft pools of the rank's colours.
-  ctx.fillStyle = "#08080b";
-  ctx.fillRect(0, 0, W, H);
-  [
-    [W * 0.18, H * 0.12, 760, field[0], 0.55],
-    [W * 0.92, H * 0.42, 700, field[1], 0.6],
-    [W * 0.3, H * 1.02, 760, field[2], 0.32],
-  ].forEach(([x, y, r, color, a]) => {
-    const g = ctx.createRadialGradient(x, y, 0, x, y, r);
-    g.addColorStop(0, color + Math.round(a * 255).toString(16).padStart(2, "0"));
-    g.addColorStop(1, color + "00");
-    ctx.fillStyle = g;
+  const m = 64; // the glass panel's inset
+  if (under) {
+    // The field: a dark base with three soft pools of the rank's colours.
+    ctx.fillStyle = "#08080b";
     ctx.fillRect(0, 0, W, H);
-  });
+    [
+      [W * 0.18, H * 0.12, 760, field[0], 0.55],
+      [W * 0.92, H * 0.42, 700, field[1], 0.6],
+      [W * 0.3, H * 1.02, 760, field[2], 0.32],
+    ].forEach(([x, y, r, color, a]) => {
+      const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+      g.addColorStop(0, color + Math.round(a * 255).toString(16).padStart(2, "0"));
+      g.addColorStop(1, color + "00");
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, W, H);
+    });
 
-  // The glass panel.
-  const m = 64;
-  rounded(ctx, m, m, W - 2 * m, H - 2 * m, 56);
-  ctx.fillStyle = "rgba(10, 10, 14, 0.52)";
-  ctx.fill();
-  const edge = ctx.createLinearGradient(m, m, W - m, H - m);
-  edge.addColorStop(0, "rgba(255, 255, 255, 0.5)");
-  edge.addColorStop(0.5, "rgba(255, 255, 255, 0.08)");
-  edge.addColorStop(1, "rgba(255, 255, 255, 0.28)");
-  ctx.strokeStyle = edge;
-  ctx.lineWidth = 2;
-  ctx.stroke();
-  // A sheen across the top of the glass.
-  ctx.save();
-  rounded(ctx, m, m, W - 2 * m, H - 2 * m, 56);
-  ctx.clip();
-  const sheen = ctx.createLinearGradient(0, m, 0, m + 420);
-  sheen.addColorStop(0, "rgba(255, 255, 255, 0.10)");
-  sheen.addColorStop(1, "rgba(255, 255, 255, 0)");
-  ctx.fillStyle = sheen;
-  ctx.fillRect(m, m, W - 2 * m, 420);
-  ctx.restore();
+    // The glass panel.
+    rounded(ctx, m, m, W - 2 * m, H - 2 * m, 56);
+    ctx.fillStyle = "rgba(10, 10, 14, 0.52)";
+    ctx.fill();
+    const edge = ctx.createLinearGradient(m, m, W - m, H - m);
+    edge.addColorStop(0, "rgba(255, 255, 255, 0.5)");
+    edge.addColorStop(0.5, "rgba(255, 255, 255, 0.08)");
+    edge.addColorStop(1, "rgba(255, 255, 255, 0.28)");
+    ctx.strokeStyle = edge;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    // A sheen across the top of the glass.
+    ctx.save();
+    rounded(ctx, m, m, W - 2 * m, H - 2 * m, 56);
+    ctx.clip();
+    const sheen = ctx.createLinearGradient(0, m, 0, m + 420);
+    sheen.addColorStop(0, "rgba(255, 255, 255, 0.10)");
+    sheen.addColorStop(1, "rgba(255, 255, 255, 0)");
+    ctx.fillStyle = sheen;
+    ctx.fillRect(m, m, W - 2 * m, 420);
+    ctx.restore();
+  }
 
   ctx.textBaseline = "middle";
   text("szo.umjo.me", m + 56, m + 78, 34, 700, "#ffffff", "left");
@@ -88,46 +97,48 @@ export function drawRankCard({ letter, step, title, scores, name, mode, vs, date
   const cx = W / 2;
   const cy = 530;
   const r = 200;
-  const ring = () => {
-    if (!fancy) return seal[0];
-    const g = ctx.createConicGradient(-Math.PI / 2, cx, cy);
-    seal.forEach((c, i) => g.addColorStop(i / seal.length, c));
-    g.addColorStop(1, seal[0]);
-    return g;
-  };
-  ctx.save();
-  ctx.shadowColor = seal[0];
-  ctx.shadowBlur = letter.startsWith("S") ? 90 : 40;
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, 0, Math.PI * 2);
-  ctx.fillStyle = "#0a0a0d";
-  ctx.fill();
-  ctx.restore();
-  ctx.strokeStyle = ring();
-  ctx.lineWidth = fancy ? 16 : 8;
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.lineWidth = 2;
-  ctx.globalAlpha = 0.5;
-  ctx.beginPath();
-  ctx.arc(cx, cy, r + 26, 0, Math.PI * 2);
-  ctx.stroke();
-  ctx.globalAlpha = 1;
-  // The letter: one colour, or left to right through the seal's colours as on the page.
-  const size = 170;
-  ctx.font = `800 ${size}px ${font}`;
-  const lw = ctx.measureText(letter).width;
-  ctx.font = `800 ${size * 0.62}px ${font}`;
-  const sw = step ? ctx.measureText(step).width + 8 : 0;
-  const left = cx - (lw + sw) / 2;
-  let ink = seal[0];
-  if (fancy) {
-    ink = ctx.createLinearGradient(left, 0, left + lw, 0);
-    seal.forEach((c, i) => ink.addColorStop(i / (seal.length - 1), c));
+  if (under) {
+    const ring = () => {
+      if (!fancy) return seal[0];
+      const g = ctx.createConicGradient(-Math.PI / 2, cx, cy);
+      seal.forEach((c, i) => g.addColorStop(i / seal.length, c));
+      g.addColorStop(1, seal[0]);
+      return g;
+    };
+    ctx.save();
+    ctx.shadowColor = seal[0];
+    ctx.shadowBlur = letter.startsWith("S") ? 90 : 40;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fillStyle = "#0a0a0d";
+    ctx.fill();
+    ctx.restore();
+    ctx.strokeStyle = ring();
+    ctx.lineWidth = fancy ? 16 : 8;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.lineWidth = 2;
+    ctx.globalAlpha = 0.5;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r + 26, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+    // The letter: one colour, or left to right through the seal's colours as on the page.
+    const size = 170;
+    ctx.font = `800 ${size}px ${font}`;
+    const lw = ctx.measureText(letter).width;
+    ctx.font = `800 ${size * 0.62}px ${font}`;
+    const sw = step ? ctx.measureText(step).width + 8 : 0;
+    const left = cx - (lw + sw) / 2;
+    let ink = seal[0];
+    if (fancy) {
+      ink = ctx.createLinearGradient(left, 0, left + lw, 0);
+      seal.forEach((c, i) => ink.addColorStop(i / (seal.length - 1), c));
+    }
+    paintText(letter, left, cy + size * 0.04, size, 800, ink, "left");
+    if (step) paintText(step, left + lw + 8, cy, size * 0.62, 800, seal[0], "left");
   }
-  text(letter, left, cy + size * 0.04, size, 800, ink, "left");
-  if (step) text(step, left + lw + 8, cy, size * 0.62, 800, seal[0], "left");
 
   if (time) {
     text(title.toUpperCase(), cx, 846, 44, 600, "rgba(255, 255, 255, 0.72)");
@@ -152,7 +163,7 @@ export function drawRankCard({ letter, step, title, scores, name, mode, vs, date
   text(name, m + 56, H - m - 112, 40, 700, "#ffffff", "left");
   text([mode, vs].filter(Boolean).join("  ·  "), m + 56, H - m - 60, 30, 500, "rgba(255, 255, 255, 0.62)", "left");
 
-  if (code) {
+  if (code && over) {
     const tile = big ? 190 : 150;
     const pad = 12;
     const x0 = W - m - 56 - tile;
@@ -174,11 +185,11 @@ export const rankCardName = (what) => `szo-${what.letter}${what.step === "+" ? "
 // takes a moment, so it is kept: drawn ahead while the summary is read
 // (Summary.jsx), and found here when the card opens.
 const drawn = new Map();
-export function cardImage(what) {
-  const key = JSON.stringify(what);
+export function cardImage(what, layer = "all") {
+  const key = layer + JSON.stringify(what);
   if (!drawn.has(key)) {
-    if (drawn.size > 8) drawn.delete(drawn.keys().next().value);
-    drawn.set(key, drawRankCard(what).toDataURL("image/png"));
+    if (drawn.size > 16) drawn.delete(drawn.keys().next().value);
+    drawn.set(key, drawRankCard(what, { layer }).toDataURL("image/png"));
   }
   return drawn.get(key);
 }
@@ -187,8 +198,14 @@ export function cardImage(what) {
 // of its layers, from holo/bake.js, and the width of the card it was taken
 // from; without one, the bare card).
 export async function saveRankCard(what, foil) {
-  const base = drawRankCard(what);
-  const picture = foil ? await bakeLive(foil.layers, foil.width, base).catch(() => base) : base;
+  if (!foil) return download(drawRankCard(what), what);
+  const base = drawRankCard(what, { layer: "base" });
+  const picture = await bakeLive(foil.layers, foil.width, base).catch(() => base);
+  // The writing over the foil, as on screen.
+  picture.getContext("2d").drawImage(drawRankCard(what, { layer: "ink" }), 0, 0);
+  download(picture, what);
+}
+function download(picture, what) {
   picture.toBlob((blob) => {
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);

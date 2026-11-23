@@ -122,7 +122,9 @@ function RankCardView({ what: given, from, onClose }) {
     setName(saveName(draft));
     setEditing(false);
   };
-  const src = useMemo(() => cardImage(what), [what]);
+  // The card in two pictures: what the foil lies on, and the writing above it.
+  const src = useMemo(() => cardImage(what, "base"), [what]);
+  const ink = useMemo(() => cardImage(what, "ink"), [what]);
   // This rank's foil (none on the lowest: it is matte).
   const foil = useMemo(() => foilOf(what), [what]);
   const cardRef = useRef(null);
@@ -229,6 +231,7 @@ function RankCardView({ what: given, from, onClose }) {
         <img src={src} alt="" draggable={false} />
         {foil && <div className="card__shine" style={foil.shine} />}
         {foil ? <div className="card__glare" /> : <i className="lab-glare" />}
+        <img className="lab-card-ink" src={ink} alt="" draggable={false} />
       </div>
       {/* The buttons and the name field share one place and trade it with a fade.
           Someone else's card (shared) is only to look at: nothing to save or name. */}
@@ -300,7 +303,11 @@ export function Award({ review, card, mode }) {
   // whole and at once: its foils fetched, its picture drawn.
   useEffect(() => {
     preloadFoils();
-    const draw = () => cardImage({ ...whole, name: whole.name || (whole.shared ? "" : loadName() || NAME_PLACEHOLDER) });
+    const draw = () => {
+      const card = { ...whole, name: whole.name || (whole.shared ? "" : loadName() || NAME_PLACEHOLDER) };
+      cardImage(card, "base");
+      cardImage(card, "ink");
+    };
     const id = typeof requestIdleCallback === "function" ? requestIdleCallback(draw, { timeout: 1500 }) : setTimeout(draw, 200);
     return () => (typeof cancelIdleCallback === "function" ? cancelIdleCallback(id) : clearTimeout(id));
   }, [whole]);
