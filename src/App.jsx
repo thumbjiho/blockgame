@@ -265,9 +265,9 @@ export default function App() {
       <main className="main">
         {view === "menu" && (
           <div className="home">
-            {/* The site's whole address as the title, in one size and weight. */}
+            {/* The site's whole address as the title, in lowercase, one size and weight. */}
             <h1 className="logo">
-              SZO
+              szo
               <a className="logo-site" href="https://umjo.me" target="_blank" rel="noopener noreferrer">
                 .umjo.me
               </a>

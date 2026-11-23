@@ -282,7 +282,7 @@
 .lab-seal.seal-SSS { letter-spacing: -0.05em; }
 .lab-seal.seal-SSS span { padding-right: 0.05em; }
 @keyframes seal-turn { to { transform: rotate(360deg); } }
-.lab-award-title { font-size: var(--t5); font-weight: 600; color: var(--fg); line-height: 1.25; }
+.lab-award-title { font-size: var(--t5); font-weight: 600; color: var(--fg); line-height: 1.25; text-transform: uppercase; }
 .lab-award-note { margin: 5px 0 0; font-size: var(--t3); color: var(--dim); }
 /* The scores inside the summary, as on the card to keep; the row above the
    comments shows them only away from the summary. */
@@ -369,3 +369,12 @@
 .exp-logo-name { font-size: 64px; }
 .exp-logo-name.small { font-size: 52px; }
 .exp-logo-name em { margin-top: -0.2em; font-style: normal; font-weight: 400; font-size: var(--t1); letter-spacing: 0.22em; color: var(--dim); }
+/* The scores' help at the end of the row under the summary. */
+.lab-nav-help { margin-right: 0; }
+.lab-nav-help .lab-help { position: relative; top: auto; right: auto; display: block; }
+/* Beside the board the summary leans toward the shape of the rank card it
+   opens (1080 × 1504), as tall as the column leaves room for, with its
+   contents spread down it. */
+.play:not(.lab-phone) .lab-award { height: 350px; display: flex; flex-direction: column; justify-content: space-between; }
+/* Here the screen ends below, so it opens upward, over the card. */
+.lab-nav-help .lab-tip { top: auto; bottom: calc(100% + 6px); transform: translateY(4px); }

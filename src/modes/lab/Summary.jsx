@@ -19,7 +19,7 @@ function verdict(review) {
   const sorted = [...kinds].sort((a, b) => review.scores[b] - review.scores[a]);
   const [best, worst] = [sorted[0], sorted[sorted.length - 1]];
   const even = review.scores[best] - review.scores[worst] < 10;
-  return { letter, step, title, points, note: even ? ["Even across all three."] : ["Strongest in {best}, weakest in {worst}.", { best: KIND_NAMES[best], worst: KIND_NAMES[worst] }] };
+  return { letter, step, title, points, note: even ? ["Well balanced."] : ["Great {best}, but {worst} could be better.", { best: KIND_NAMES[best], worst: KIND_NAMES[worst] }] };
 }
 
 // What the three scores mean and where the bar sits, on hover (or focus) of a
@@ -359,10 +359,11 @@ export function Award({ review, card, mode }) {
       )}
       {/* The three scores: across the top of the card, or on a phone beside its title. */}
       {!phone && scores}
-      {mode && (
+      {/* On a phone the help sits on the card; elsewhere it ends the row under it. */}
+      {mode && phone && (
         // What the scores mean. A tap here must not also open the card.
         <span className="lab-award-help" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
-          <ScoreHelp review={review} mode={mode} button={phone} />
+          <ScoreHelp review={review} mode={mode} button />
         </span>
       )}
       <RankSeal letter={v.letter} step={v.step} />

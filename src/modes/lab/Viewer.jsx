@@ -13,7 +13,7 @@ import { pathAt } from "../../trace.js";
 import { replayLink } from "../../pack.js";
 import { runLink } from "../../compact.js";
 import { ACCENT, LETTER_ID, SPEEDS, MODE_NAMES, modeName, NO_MOMENTS, GRADES, BEAT_MS, LOAD_MS, STAGES, stageOf, LINE_AHEAD, KIND_NAMES } from "./consts.js";
-import { Award } from "./Summary.jsx";
+import { Award, ScoreHelp } from "./Summary.jsx";
 import { preloadFoils } from "../../holo/foils.js";
 import { KindIcon, GradeIcon } from "./icons.jsx";
 import { Typed } from "./motion.jsx";
@@ -491,9 +491,17 @@ export default function Viewer({ replay, shared = false, look, keysOff, onClose,
                       them on the right when there is a better line to show. */}
                   <div className={"lab-moment-nav" + (overview ? " at-overview" : "")}>
                     {overview ? (
-                      <button type="button" className="btn primary compact" onClick={blur(() => jump(1))} disabled={!moments.length}>
-                        {moments.length ? t("See {n} key moments", { n: moments.length }) : t("No key moments")}
-                      </button>
+                      <>
+                        <button type="button" className="btn primary compact" onClick={blur(() => jump(1))} disabled={!moments.length}>
+                          {moments.length ? t("See {n} key moments", { n: moments.length }) : t("No key moments")}
+                        </button>
+                        {/* What the scores mean, at the far end of the row. */}
+                        {review && typeof review === "object" && (
+                          <span className="lab-close lab-nav-help">
+                            <ScoreHelp review={review} mode={replay.mode.mode} />
+                          </span>
+                        )}
+                      </>
                     ) : (
                       <>
                         <IconButton icon="prev" label="Previous" onClick={blur(() => jump(-1))} disabled={!moments.some((m) => m.step < step)} />

@@ -132,10 +132,10 @@ export function drawRankCard({ letter, step, title, scores, name, mode, vs, date
   if (step) text(step, left + lw + 8, cy, size * 0.62, 800, seal[0], "left");
 
   if (time) {
-    text(title, cx, 846, 44, 600, "rgba(255, 255, 255, 0.72)");
+    text(title.toUpperCase(), cx, 846, 44, 600, "rgba(255, 255, 255, 0.72)");
     text(time, cx, 940, 96, 800, "#ffffff");
   } else {
-    text(title, cx, 880, 66, 700, "#ffffff");
+    text(title.toUpperCase(), cx, 880, 66, 700, "#ffffff");
   }
   // The QR code: the run itself where it packs small enough (link), and the
   // site's address otherwise. A run's code has more in it, so its tile is

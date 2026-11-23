@@ -10,11 +10,11 @@ const LETTERS = [
   [125, "SSS", "Beyond flawless"],
   [118, "SS", "Flawless"],
   [110, "S", "Near flawless"],
-  [90, "A", "A strong run"],
-  [70, "B", "A solid run"],
-  [50, "C", "Room to grow"],
-  [30, "D", "An uneven run"],
-  [0, "E", "Back to basics"],
+  [90, "A", "Strong play"],
+  [70, "B", "Solid and steady"],
+  [50, "C", "Not bad at all"],
+  [30, "D", "Getting there"],
+  [0, "E", "Just starting"],
 ];
 const STEPPED = "ABCD";
 

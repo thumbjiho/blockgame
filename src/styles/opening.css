@@ -52,7 +52,7 @@
 
 /* Title-like text (headings, labels, buttons, tabs) is set in capitals;
    descriptions and hints stay in sentence case. */
-.title, .logo, .sub, .mode-label, .menu button, .k, .group button, .btn,
+.title, .sub, .mode-label, .menu button, .k, .group button, .btn,
 .tag, .chip, .oplist .nm, .count, .action-pop, .stat .v, .veil .v, .kbd, .keys .hint {
   text-transform: uppercase;
 }
