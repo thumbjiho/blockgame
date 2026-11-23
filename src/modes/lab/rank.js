@@ -7,14 +7,14 @@ export const RANK_MAX = 130;
 // [lowest points, letter, title]. A to D span 20 points each, in three steps
 // (+, plain, −); the S ranks and E have no steps.
 const LETTERS = [
-  [125, "SSS", "Beyond flawless"],
+  [125, "SSS", "Beyond perfect"],
   [118, "SS", "Flawless"],
-  [110, "S", "Near flawless"],
-  [90, "A", "Strong play"],
-  [70, "B", "Solid and steady"],
-  [50, "C", "Not bad at all"],
-  [30, "D", "Getting there"],
-  [0, "E", "Just starting"],
+  [110, "S", "Outstanding"],
+  [90, "A", "Polished"],
+  [70, "B", "Solid"],
+  [50, "C", "Decent"],
+  [30, "D", "On the rise"],
+  [0, "E", "Getting there"],
 ];
 const STEPPED = "ABCD";
 
