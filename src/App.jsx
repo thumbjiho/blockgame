@@ -45,10 +45,10 @@ function saveSettings(settings) {
 const MODES = [
   { id: "sprint", label: "Sprint", color: "#41b6e6", desc: "Clear a set number of lines as fast as you can.", ready: true },
   { id: "battle", label: "Battle", color: "#e8505b", desc: "One on one against the CPU or a friend on the same keyboard.", ready: true },
-  { id: "opening", label: "Opening", color: "#b14fd0", desc: "Practise openers piece by piece: TKI, PCO, DT Cannon, Albatross.", ready: true, beta: true },
-  { id: "finesse", label: "Finesse", color: "#5cc45c", desc: "Place each piece in the fewest key presses.", ready: true, beta: true },
   { id: "lab", label: "Replay", color: "#3fc8b4", desc: "Watch a run again from its log.", ready: true },
   { id: "sandbox", label: "Sandbox", color: "#f2913d", desc: "Build a board, set the pieces, and play it.", ready: true },
+  { id: "opening", label: "Opening", color: "#b14fd0", desc: "Practise openers piece by piece: TKI, PCO, DT Cannon, Albatross.", ready: true, beta: true },
+  { id: "finesse", label: "Finesse", color: "#5cc45c", desc: "Place each piece in the fewest key presses.", ready: true, beta: true },
   { id: "experiments", label: "Lab", color: "#f2cb4c", desc: "Things being tried out, just for fun.", ready: true, beta: true, warn: true },
 ];
 

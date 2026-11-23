@@ -253,7 +253,7 @@ function RankCardView({ what: given, from, onClose }) {
           <IconButton icon="close" label="Cancel" size="m" onClick={() => setEditing(false)} />
         </form>
         <div className={"lab-cardview-actions" + (editing ? "" : " on")}>
-        <Button variant="primary" size="l" icon="download" onClick={() => saveRankCard(what)}>
+        <Button variant="primary" size="l" icon="download" onClick={() => saveRankCard(what, cardRef.current)}>
           {t("Save as image")}
         </Button>
         {given.name ? (

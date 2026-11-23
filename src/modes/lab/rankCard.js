@@ -2,7 +2,7 @@
 // trading card (1080 × 1504, 0.718 wide to tall)
 // drawn on a canvas and handed over as a PNG. Laid out like a gift card: a
 // field of the rank's colours, a glass panel on it, the seal in the middle.
-import { foilTextures } from "../../holo/foils.js";
+import { bakeLive } from "../../holo/bake.js";
 import { qr } from "../../qr.js";
 
 const W = 1080;
@@ -27,7 +27,7 @@ function rounded(ctx, x, y, w, h, r) {
 
 // what: { letter, step, title, scores: [[label, value]], name, mode, vs, date,
 // time } — time is a finished Sprint's, and then it is the largest line.
-export function drawRankCard({ letter, step, title, scores, name, mode, vs, date, time, link }, { baked = false, textures = null } = {}) {
+export function drawRankCard({ letter, step, title, scores, name, mode, vs, date, time, link }) {
   const canvas = document.createElement("canvas");
   canvas.width = W;
   canvas.height = H;
@@ -79,8 +79,6 @@ export function drawRankCard({ letter, step, title, scores, name, mode, vs, date
   ctx.fillStyle = sheen;
   ctx.fillRect(m, m, W - 2 * m, 420);
   ctx.restore();
-
-  if (baked) bakeFoil(ctx, letter, m, textures);
 
   ctx.textBaseline = "middle";
   text("szo.umjo.me", m + 56, m + 78, 34, 700, "#ffffff", "left");
@@ -172,77 +170,7 @@ export function drawRankCard({ letter, step, title, scores, name, mode, vs, date
 // The card's file name, by rank.
 export const rankCardName = (what) => `szo-${what.letter}${what.step === "+" ? "-plus" : what.step ? "-minus" : ""}.png`;
 
-// On the page the foil is live (it follows the pointer); a saved picture gets
-// a still one, caught at one angle: slanted streaks of light, a wash of
-// colour burnt into the glass, and a glare in a corner. How much, by rank.
-const BAKED = { E: 0, D: 0.1, C: 0.14, B: 0.18, A: 0.22, S: 0.28, SS: 0.34, SSS: 0.42 };
-function bakeFoil(ctx, letter, m, textures) {
-  const k = BAKED[letter];
-  if (!k) return;
-  ctx.save();
-  rounded(ctx, m, m, W - 2 * m, H - 2 * m, 56);
-  ctx.clip();
-  const slant = (stops) => {
-    // A gradient running across the card at a slant (about 115°).
-    const g = ctx.createLinearGradient(0, H * 0.15, W, H * 0.85);
-    stops.forEach(([at, color]) => g.addColorStop(at, color));
-    return g;
-  };
-  ctx.globalCompositeOperation = "color-dodge";
-  ctx.globalAlpha = k;
-  ctx.fillStyle = slant([[0, "#ff5fa8"], [0.2, "#ffd75e"], [0.4, "#6fe3a1"], [0.6, "#5fb8ff"], [0.8, "#b98cff"], [1, "#ff5fa8"]]);
-  ctx.fillRect(0, 0, W, H);
-  ctx.globalCompositeOperation = "screen";
-  ctx.globalAlpha = k * 0.9;
-  const clear = "rgba(255, 255, 255, 0)";
-  ctx.fillStyle = slant([[0, clear], [0.3, clear], [0.36, "rgba(255, 255, 255, 0.5)"], [0.4, clear], [0.52, clear], [0.55, "rgba(255, 255, 255, 0.28)"], [0.58, clear], [0.74, clear], [0.8, "rgba(255, 255, 255, 0.4)"], [0.86, clear], [1, clear]]);
-  ctx.fillRect(0, 0, W, H);
-  const glare = ctx.createRadialGradient(W * 0.28, H * 0.16, 0, W * 0.28, H * 0.16, W * 0.7);
-  glare.addColorStop(0, "rgba(255, 255, 255, 0.5)");
-  glare.addColorStop(1, clear);
-  ctx.globalAlpha = k;
-  ctx.fillStyle = glare;
-  ctx.fillRect(0, 0, W, H);
-
-  // The foil's own texture, as on screen: the pattern laid in it, lit in the
-  // colours of the slant, and the glitter over it.
-  const rainbow = [[0, "#ff5fa8"], [0.2, "#ffd75e"], [0.4, "#6fe3a1"], [0.6, "#5fb8ff"], [0.8, "#b98cff"], [1, "#ff5fa8"]];
-  const tiled = ({ img, size }, tint) => {
-    const tile = document.createElement("canvas");
-    tile.width = Math.max(8, Math.round(W * size));
-    tile.height = Math.max(8, Math.round((tile.width * img.height) / img.width));
-    tile.getContext("2d").drawImage(img, 0, 0, tile.width, tile.height);
-    const layer = document.createElement("canvas");
-    layer.width = W;
-    layer.height = H;
-    const lc = layer.getContext("2d");
-    lc.fillStyle = "#000";
-    lc.fillRect(0, 0, W, H);
-    lc.fillStyle = lc.createPattern(tile, "repeat");
-    lc.fillRect(0, 0, W, H);
-    if (tint) {
-      const g = lc.createLinearGradient(0, H * 0.15, W, H * 0.85);
-      rainbow.forEach(([at, color]) => g.addColorStop(at, color));
-      lc.globalCompositeOperation = "multiply";
-      lc.fillStyle = g;
-      lc.fillRect(0, 0, W, H);
-    }
-    return layer;
-  };
-  if (textures?.pattern) {
-    ctx.globalCompositeOperation = "screen";
-    ctx.globalAlpha = Math.min(0.34, k * 1.5); // capped: the top ranks must stay readable
-    ctx.drawImage(tiled(textures.pattern, true), 0, 0);
-  }
-  if (textures?.glitter) {
-    ctx.globalCompositeOperation = "color-dodge";
-    ctx.globalAlpha = Math.min(0.6, k * 2.4);
-    ctx.drawImage(tiled(textures.glitter, true), 0, 0);
-  }
-  ctx.restore();
-}
-
-// The card as shown on screen (not baked), as a picture address. Drawing it
+// The card's picture (the foil goes over it on screen), as a picture address. Drawing it
 // takes a moment, so it is kept: drawn ahead while the summary is read
 // (Summary.jsx), and found here when the card opens.
 const drawn = new Map();
@@ -255,9 +183,12 @@ export function cardImage(what) {
   return drawn.get(key);
 }
 
-export async function saveRankCard(what) {
-  const textures = await foilTextures(what).catch(() => null);
-  drawRankCard(what, { baked: true, textures }).toBlob((blob) => {
+// The picture saved: the card with its foil as it is on screen at that
+// moment (card: the .card showing it; without one, the bare card).
+export async function saveRankCard(what, card) {
+  const base = drawRankCard(what);
+  const picture = card ? await bakeLive(card, base).catch(() => base) : base;
+  picture.toBlob((blob) => {
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = `szo-${what.letter}${what.step === "+" ? "-plus" : what.step ? "-minus" : ""}.png`;

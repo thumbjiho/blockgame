@@ -459,7 +459,7 @@ export default {
   "How well the stack was built, read off the result: how little was left on the board, and how much was cleared in quads.": "스택을 얼마나 잘 쌓았는지를 결과로 봅니다. 끝났을 때 남은 블록이 적고 쿼드로 지운 줄이 많을수록 높습니다.",
   "Missed a T-spin single.": "T스핀 싱글 기회를 놓쳤습니다.",
   "{piece} was the piece to play here, keeping this one for later.": "여기서는 {piece}를 놓고 이 블록은 아껴 두는 편이 좋았습니다.",
-  "The engine puts it elsewhere, which leaves it more to work with.": "엔진은 다른 자리를 고릅니다. 그쪽이 다음 수의 여지가 더 큽니다.",
+  "Missed a better spot, one that leaves more to work with.": "더 좋은 자리를 놓쳤습니다. 다음 수를 두기 더 좋은 자리였습니다.",
   "Back to summary": "총평으로",
   "About the scores": "점수 설명",
   MCR: "매크로",

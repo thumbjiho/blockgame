@@ -487,7 +487,7 @@ export async function analyze({ events, frames, dealt, mode: played }, onProgres
                     ? bf.gaps === 0
                       ? ["Missed a chance to place it without a gap. {a} cells are covered now.", { a: f.gaps }]
                       : ["Missed a cleaner spot. {a} cells are covered now; it could have been {b}.", { a: f.gaps, b: bf.gaps }]
-                    : ["The engine puts it elsewhere, which leaves it more to work with.", {}];
+                    : ["Missed a better spot, one that leaves more to work with.", {}];
           found.push({
             step: i,
             kind: "macro",

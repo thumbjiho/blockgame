@@ -39,41 +39,6 @@ export function preloadFoils() {
 }
 const kept = [];
 
-// One of the foil pictures, ready to draw.
-const loading = new Map();
-function picture(src) {
-  if (!loading.has(src)) {
-    loading.set(
-      src,
-      new Promise((resolve) => {
-        const img = new Image();
-        img.onload = () => resolve(img);
-        img.onerror = () => resolve(null);
-        img.src = src;
-      }),
-    );
-  }
-  return loading.get(src);
-}
-
-// What the saved picture needs to carry the same foil as the card on screen:
-// the pattern laid in it and the glitter over it, each with how wide one
-// repeat is as a share of the card's width. Null for a matte card.
-const GLITTER = { SSS: true, A: true, C: true };
-const SET_PATTERN = { SSS: illusion };
-export async function foilTextures(what) {
-  const foil = FOILS[what.letter];
-  if (!foil) return null;
-  const seed = seedOf(what);
-  const pick = (n, shift) => (seed >>> shift) % n;
-  const src = foil.pattern ? PATTERNS[pick(PATTERNS.length, 8)] : SET_PATTERN[what.letter];
-  const [pattern, sparkle] = await Promise.all([src ? picture(src) : null, GLITTER[what.letter] ? picture(glitter) : null]);
-  return {
-    pattern: pattern && { img: pattern, size: foil.pattern ? (26 + pick(5, 14) * 4) / 100 : 0.5 },
-    glitter: sparkle && { img: sparkle, size: (22 + pick(9, 3)) / 100 },
-  };
-}
-
 // rarity   the foil
 // strength how much of it shows (1 is as that project has it)
 // pattern  the foil has a pattern laid in it, which differs card to card
