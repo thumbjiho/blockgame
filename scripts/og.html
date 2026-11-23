@@ -20,7 +20,7 @@ stack.forEach((line,r)=>[...line].forEach((ch,col)=>{ if(ch==='.') return; x.fil
 const T=[[1,0],[0,1],[1,1],[2,1]];
 for(let b=0;b<4;b++){ x.fillStyle=C.I; x.fillRect(bx+9*cell+1, by+(2+b)*cell+1, cell-2, cell-2); }
 x.fillStyle='#ebebeb'; x.font='700 210px "Helvetica Neue", Helvetica, Arial, sans-serif';
-const MARK = {"cells":[{"x":2,"y":0,"color":"#5cc45c"},{"x":2,"y":1,"color":"#5cc45c"},{"x":3,"y":1,"color":"#5cc45c"},{"x":3,"y":2,"color":"#5cc45c"},{"x":0,"y":2,"color":"#e8505b"},{"x":1,"y":2,"color":"#e8505b"},{"x":1,"y":3,"color":"#e8505b"},{"x":2,"y":3,"color":"#e8505b"},{"x":3,"y":3,"color":"#f2cb4c"},{"x":4,"y":3,"color":"#f2cb4c"},{"x":3,"y":4,"color":"#f2cb4c"},{"x":4,"y":4,"color":"#f2cb4c"}],"cx":2.5,"cy":2.5,"x":0.3786796564403574,"y":0.37867965644035717,"w":4.242640687119286,"h":5.656854249492381,"balance":0.4583333333333332,"turn":45}; // written by scripts/favicon.mjs
+const MARK = {"cells":[{"x":2,"y":2,"color":"#5cc45c"},{"x":3,"y":2,"color":"#5cc45c"},{"x":1,"y":3,"color":"#5cc45c"},{"x":2,"y":3,"color":"#5cc45c"},{"x":0,"y":0,"color":"#e8505b"},{"x":1,"y":0,"color":"#e8505b"},{"x":1,"y":1,"color":"#e8505b"},{"x":2,"y":1,"color":"#e8505b"},{"x":3,"y":0,"color":"#f2cb4c"},{"x":4,"y":0,"color":"#f2cb4c"},{"x":3,"y":1,"color":"#f2cb4c"},{"x":4,"y":1,"color":"#f2cb4c"}],"cx":2.5,"cy":2,"x":0,"y":0,"w":5,"h":4,"balance":0.4166666666666667,"turn":0}; // written by scripts/favicon.mjs
 // The mark, as tall as the capitals and a little more (it stands on a point), then the name.
 x.font='700 170px "Helvetica Neue", Helvetica, Arial, sans-serif'; x.letterSpacing='-7px';
 const mt=x.measureText('SZO'); const capUp=mt.actualBoundingBoxAscent, capDown=mt.actualBoundingBoxDescent, cap=capUp+capDown, base=296;

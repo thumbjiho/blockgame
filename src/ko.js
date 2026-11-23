@@ -83,6 +83,7 @@ export default {
   "The pieces in the order of the name, from the left or from the top.": "왼쪽이나 위에서부터 이름 순서대로 읽히는 배치입니다.",
   "S and Z as each other's reflection, O on the axis: left and right, top and bottom, or across a diagonal.": "S와 Z가 서로의 거울상이고 O가 축 위에 옵니다. 좌우, 상하, 대각선.",
   "Left and right": "좌우",
+  "Mono": "흑백",
   "Turn": "회전",
   "Top and bottom": "상하",
   "Diagonal": "대각선",

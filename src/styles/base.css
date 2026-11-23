@@ -123,20 +123,10 @@ canvas { display: block; }
 @keyframes bg-thud { 0% { transform: scaleY(0.72) scaleX(1.12); } 60% { transform: scaleY(1.06) scaleX(0.98); } }
 @media (prefers-reduced-motion: reduce) { .bg-drop.landed g { animation: none; } }
 @keyframes grid-drift { from { background-position: 0 0; } to { background-position: 420px 210px; } }
-.wordmark {
-  position: absolute;
-  z-index: 30;
-  left: var(--edge);
-  top: 16px;
-  border: 0;
-  background: transparent;
-  padding: 0;
-  font-size: var(--t4);
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: var(--fg);
-  cursor: pointer;
-}
+/* The site's address at the top left of every screen but home; it leads
+   home. On a phone only the name, to leave the mode's title its room. */
+.wordmark { position: absolute; z-index: 30; left: var(--edge); top: 16px; border: 0; background: transparent; padding: 0; font-size: var(--t4); font-weight: 700; letter-spacing: -0.02em; text-transform: none; color: var(--fg); cursor: pointer; }
+@media (max-width: 719px) { .wordmark span { display: none; } }
 
 /* ─── Segmented group (pill) ─── */
 .group {
@@ -272,6 +262,9 @@ canvas { display: block; }
 /* The mark set with the name (Logo.jsx): sized by the type around it. */
 .logo-lockup { display: inline-flex; align-items: baseline; color: var(--fg); }
 .logo-lockup strong { font-weight: 700; letter-spacing: -0.045em; line-height: 1; }
+.logo-name { display: inline-flex; align-items: baseline; }
+.logo-site { margin-left: 0.5em; font-size: clamp(13px, 0.2em, 18px); font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--dim); text-decoration: none; transition: color 0.2s var(--out); }
+.logo-site:hover { color: var(--fg); }
 .logo-lockup.stacked { flex-direction: column; align-items: center; }
 .sub { font-size: var(--t3); color: var(--dim); margin: 14px 0 0; }
 .menu { display: flex; flex-direction: column; gap: 10px; width: 300px; }

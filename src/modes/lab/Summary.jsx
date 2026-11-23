@@ -98,7 +98,7 @@ export function RankSeal({ letter, step }) {
 // The card, large, over the page: it leans toward the pointer like a card in
 // the hand, with a light moving across it. Save is underneath; a click
 // outside or Esc closes it.
-function RankCardView({ what: given, onClose }) {
+function RankCardView({ what: given, from, onClose }) {
   // A person's card carries their name, which they can set here; a CPU's
   // card carries the CPU's.
   const [name, setName] = useState(loadName);
@@ -136,14 +136,18 @@ function RankCardView({ what: given, onClose }) {
     window.addEventListener("keydown", key, true);
     return () => window.removeEventListener("keydown", key, true);
   }, [onClose]);
-  const lean = (e) => {
+  // Where the card is turned to face (x and y from −0.5 to 0.5 across it), and
+  // where it faces now. It does not jump to the pointer: it is drawn toward it
+  // a little every frame. So the first small move after opening is not a lurch
+  // from straight ahead to wherever the pointer happens to be, and the card
+  // opens already turning toward the pointer that opened it.
+  const aim = useRef({ x: 0, y: 0 });
+  const faces = useRef({ x: 0, y: 0 });
+  const frame = useRef(0);
+  const seen = useRef(0);
+  const face = (x, y) => {
     const el = cardRef.current;
-    const box = el.getBoundingClientRect();
-    // The pointer is followed over the whole screen, but only as far as the
-    // card's own edges: past them the foil would run out and show its seams.
-    const within = (v) => Math.min(0.5, Math.max(-0.5, v));
-    const x = within((e.clientX - box.left) / box.width - 0.5);
-    const y = within((e.clientY - box.top) / box.height - 0.5);
+    if (!el) return;
     el.style.setProperty("--rx", `${(-y * 16).toFixed(2)}deg`);
     el.style.setProperty("--ry", `${(x * 20).toFixed(2)}deg`);
     el.style.setProperty("--gx", `${((x + 0.5) * 100).toFixed(1)}%`);
@@ -160,7 +164,44 @@ function RankCardView({ what: given, onClose }) {
     el.style.setProperty("--pointer-from-top", py.toFixed(3));
     el.style.setProperty("--pointer-from-center", Math.min(1, Math.hypot(x, y) * 2).toFixed(3));
   };
-  const rest = () => ["--rx", "--ry"].forEach((k) => cardRef.current.style.setProperty(k, "0deg"));
+  const step = (now) => {
+    // The same pace whatever the screen's refresh rate: most of the way in about a fifth of a second.
+    const still = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    const pull = still ? 1 : 1 - Math.exp(-Math.min(50, now - seen.current) / 90);
+    seen.current = now;
+    const at = faces.current;
+    at.x += (aim.current.x - at.x) * pull;
+    at.y += (aim.current.y - at.y) * pull;
+    const there = Math.abs(aim.current.x - at.x) < 0.0008 && Math.abs(aim.current.y - at.y) < 0.0008;
+    if (there) faces.current = { ...aim.current };
+    face(faces.current.x, faces.current.y);
+    frame.current = there ? 0 : requestAnimationFrame(step);
+  };
+  const turnTo = (x, y) => {
+    aim.current = { x, y };
+    if (frame.current) return;
+    seen.current = performance.now();
+    frame.current = requestAnimationFrame(step);
+  };
+  const toward = (clientX, clientY) => {
+    const box = cardRef.current?.getBoundingClientRect();
+    if (!box?.width) return;
+    // The pointer is followed over the whole screen, but only as far as the
+    // card's own edges: past them the foil would run out and show its seams.
+    const within = (v) => Math.min(0.5, Math.max(-0.5, v));
+    turnTo(within((clientX - box.left) / box.width - 0.5), within((clientY - box.top) / box.height - 0.5));
+  };
+  const lean = (e) => toward(e.clientX, e.clientY);
+  const rest = () => turnTo(0, 0);
+  useEffect(() => {
+    // Opened by a click: the pointer is already somewhere over the screen.
+    if (from) toward(from.x, from.y);
+    return () => {
+      cancelAnimationFrame(frame.current);
+      frame.current = 0; // or the next turn would think one is still on its way
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   return createPortal(
     <div
       className="lab-cardview"
@@ -283,7 +324,12 @@ export function Award({ review, card, mode }) {
     el.style.setProperty("--gy", `${((y + 0.5) * 100).toFixed(1)}%`);
   };
   const rest = level;
-  const open = () => setShown(whole);
+  // Where the pointer was when the card was asked for (nowhere, by keyboard).
+  const [from, setFrom] = useState(null);
+  const open = (e) => {
+    setFrom(e?.clientX != null && (e.clientX || e.clientY) ? { x: e.clientX, y: e.clientY } : null);
+    setShown(whole);
+  };
   return (
     <div
       ref={cardRef}
@@ -304,6 +350,7 @@ export function Award({ review, card, mode }) {
       {shown && (
         <RankCardView
           what={shown}
+          from={from}
           onClose={() => {
             setShown(null);
             level();

@@ -114,6 +114,23 @@ export function logoLayouts() {
   return list;
 }
 
+// Where one piece ends: every side of a square that does not face another
+// square of the same piece, as [x1, y1, x2, y2] in squares. Drawn as lines,
+// these keep the three pieces apart when the mark is a single colour.
+export function pieceEdges(layout) {
+  const edges = [];
+  for (const n of PIECES) {
+    const own = new Set(layout.P[n].map(key));
+    for (const [x, y] of layout.P[n]) {
+      if (!own.has(key([x, y - 1]))) edges.push([x, y, x + 1, y]);
+      if (!own.has(key([x, y + 1]))) edges.push([x, y + 1, x + 1, y + 1]);
+      if (!own.has(key([x - 1, y]))) edges.push([x, y, x, y + 1]);
+      if (!own.has(key([x + 1, y]))) edges.push([x + 1, y, x + 1, y + 1]);
+    }
+  }
+  return edges;
+}
+
 // The arrangement with nothing around it: unit squares, the angle to turn
 // them by, and the box the turned shape really fills (for setting it beside
 // type, where the empty corners of a square box would throw the spacing off).
@@ -157,5 +174,8 @@ export function markCells(layout, size, pad = 0.08, turn = 0) {
   const oy = -dx * Math.sin(a) + dy * Math.cos(a);
   const x0 = whole(size / 2 - shape.cx * side - ox);
   const y0 = whole(size / 2 - shape.cy * side - oy);
-  return PIECES.flatMap((n) => layout.P[n].map(([x, y]) => ({ x: x0 + x * side, y: y0 + y * side, side, color: PIECE_COLORS[n] })));
+  const cells = PIECES.flatMap((n) => layout.P[n].map(([x, y]) => ({ x: x0 + x * side, y: y0 + y * side, side, color: PIECE_COLORS[n] })));
+  // The pieces' outlines in the same measures, for a mark in one colour.
+  cells.edges = pieceEdges(layout).map((e) => e.map((v, i) => (i % 2 ? y0 : x0) + v * side));
+  return cells;
 }

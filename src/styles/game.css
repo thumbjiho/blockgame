@@ -19,7 +19,7 @@
 .mode-label {
   position: fixed;
   z-index: 30;
-  left: calc(var(--edge) + 44px);
+  left: calc(var(--edge) + 112px); /* clear of the name and its address */
   top: 17px;
   font-size: var(--t3);
   color: var(--dim);

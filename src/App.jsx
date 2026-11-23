@@ -238,7 +238,7 @@ export default function App() {
       <Toaster />
       {view !== "menu" && (
         <button className="wordmark" onClick={goMenu} title={t("Home")}>
-          SZO
+          szo<span>.umjo.me</span>
         </button>
       )}
 
@@ -266,7 +266,13 @@ export default function App() {
         {view === "menu" && (
           <div className="home">
             <h1 className="logo">
-              <LogoLockup />
+              <LogoLockup
+                after={
+                  <a className="logo-site" href="https://umjo.me" target="_blank" rel="noopener noreferrer">
+                    .umjo.me
+                  </a>
+                }
+              />
             </h1>
             <div className="sub">Jojo&apos;s Blockgame Laboratory</div>
             <div className="menu">
